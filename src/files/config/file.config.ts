@@ -51,7 +51,7 @@ export default registerAs<FileConfig>('file', () => {
     secretAccessKey: process.env.SECRET_ACCESS_KEY,
     awsDefaultS3Bucket: process.env.AWS_DEFAULT_S3_BUCKET,
     awsS3Region: process.env.AWS_S3_REGION,
-    maxFileSize: 5242880, // 5mb
+    maxFileSize: 20971520, // 20mb
     // Convert the string to boolean
     awsS3PublicAccess: process.env.AWS_S3_PUBLIC_ACCESS === 'true',
   };
