@@ -2,13 +2,11 @@ import { Transform } from 'class-transformer';
 
 export class EntityDocumentHelper {
   @Transform(
-    (value) => {
-      if ('value' in value) {
-        // https://github.com/typestack/class-transformer/issues/879
-        return value.obj[value.key].toString();
+    (params) => {
+      if (params.value && params.value.toString) {
+        return params.value.toString();
       }
-
-      return 'unknown value';
+      return params.value;
     },
     {
       toPlainOnly: true,

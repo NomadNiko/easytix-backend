@@ -20,6 +20,8 @@ export class FilesS3Service {
       });
     }
 
+    // No need to set ACL since it's not supported
+
     return {
       file: await this.fileRepository.create({
         path: file.key,

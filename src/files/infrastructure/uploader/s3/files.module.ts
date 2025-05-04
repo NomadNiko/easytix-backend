@@ -9,9 +9,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { S3Client } from '@aws-sdk/client-s3';
 import multerS3 from 'multer-s3';
-
 import { FilesS3Service } from './files.service';
-
 import { DocumentFilePersistenceModule } from '../../persistence/document/document-persistence.module';
 import { RelationalFilePersistenceModule } from '../../persistence/relational/relational-persistence.module';
 import { AllConfigType } from '../../../../config/config.type';
@@ -43,7 +41,6 @@ const infrastructurePersistenceModule = (databaseConfig() as DatabaseConfig)
             }),
           },
         });
-
         return {
           fileFilter: (request, file, callback) => {
             if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
@@ -57,7 +54,6 @@ const infrastructurePersistenceModule = (databaseConfig() as DatabaseConfig)
                 false,
               );
             }
-
             callback(null, true);
           },
           storage: multerS3({
@@ -66,6 +62,7 @@ const infrastructurePersistenceModule = (databaseConfig() as DatabaseConfig)
               infer: true,
             }),
             contentType: multerS3.AUTO_CONTENT_TYPE,
+            // Remove ACL option since ACLs are not supported
             key: (request, file, callback) => {
               callback(
                 null,
@@ -84,7 +81,7 @@ const infrastructurePersistenceModule = (databaseConfig() as DatabaseConfig)
     }),
   ],
   controllers: [FilesS3Controller],
-  providers: [FilesS3Service],
+  providers: [ConfigService, FilesS3Service],
   exports: [FilesS3Service],
 })
 export class FilesS3Module {}

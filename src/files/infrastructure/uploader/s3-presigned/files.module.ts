@@ -9,9 +9,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { S3Client } from '@aws-sdk/client-s3';
 import multerS3 from 'multer-s3';
-
 import { FilesS3PresignedService } from './files.service';
-
 import { DocumentFilePersistenceModule } from '../../persistence/document/document-persistence.module';
 import { RelationalFilePersistenceModule } from '../../persistence/relational/relational-persistence.module';
 import { AllConfigType } from '../../../../config/config.type';
@@ -43,7 +41,6 @@ const infrastructurePersistenceModule = (databaseConfig() as DatabaseConfig)
             }),
           },
         });
-
         return {
           fileFilter: (request, file, callback) => {
             if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
@@ -57,13 +54,12 @@ const infrastructurePersistenceModule = (databaseConfig() as DatabaseConfig)
                 false,
               );
             }
-
             callback(null, true);
           },
           storage: multerS3({
             s3: s3,
             bucket: '',
-            acl: 'public-read',
+            // Remove acl: 'public-read'
             contentType: multerS3.AUTO_CONTENT_TYPE,
             key: (request, file, callback) => {
               callback(
