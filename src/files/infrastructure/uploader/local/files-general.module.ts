@@ -1,4 +1,4 @@
-// ./easytix-backend/src/files/infrastructure/uploader/local/files-general.module.ts
+// src/files/infrastructure/uploader/local/files-general.module.ts
 import {
   HttpStatus,
   Module,

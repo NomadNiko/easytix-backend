@@ -23,6 +23,7 @@ import { SessionModule } from './session/session.module';
 import { MailerModule } from './mailer/mailer.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MongooseConfigService } from './database/mongoose-config.service';
+import { UserDocumentsModule } from './user-documents/user-documents.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { MongooseConfigService } from './database/mongoose-config.service';
     }),
     UsersModule,
     FilesModule,
+    UserDocumentsModule,
     AuthModule,
     AuthFacebookModule,
     AuthGoogleModule,

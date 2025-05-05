@@ -1,4 +1,4 @@
-// ./easytix-backend/src/files/infrastructure/uploader/local/files-general.controller.ts
+// src/files/infrastructure/uploader/local/files-general.controller.ts
 import {
   Controller,
   Get,
