@@ -24,6 +24,7 @@ import { MailerModule } from './mailer/mailer.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MongooseConfigService } from './database/mongoose-config.service';
 import { UserDocumentsModule } from './user-documents/user-documents.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { UserDocumentsModule } from './user-documents/user-documents.module';
     UsersModule,
     FilesModule,
     UserDocumentsModule,
+    NotificationsModule,
     AuthModule,
     AuthFacebookModule,
     AuthGoogleModule,
