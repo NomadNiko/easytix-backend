@@ -1,7 +1,6 @@
 // src/notifications/dto/create-broadcast-notification.dto.ts
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
-
 export class CreateBroadcastNotificationDto {
   @ApiProperty({
     type: String,
@@ -10,7 +9,6 @@ export class CreateBroadcastNotificationDto {
   @IsNotEmpty()
   @IsString()
   title: string;
-
   @ApiProperty({
     type: String,
     example: 'The system will be down for maintenance on Saturday from 2-4 AM.',
@@ -18,7 +16,6 @@ export class CreateBroadcastNotificationDto {
   @IsNotEmpty()
   @IsString()
   message: string;
-
   @ApiPropertyOptional({
     type: String,
     example: '/announcements/maintenance',
@@ -26,4 +23,11 @@ export class CreateBroadcastNotificationDto {
   @IsOptional()
   @IsString()
   link?: string;
+  @ApiPropertyOptional({
+    type: String,
+    example: 'View Announcement',
+  })
+  @IsOptional()
+  @IsString()
+  linkLabel?: string;
 }

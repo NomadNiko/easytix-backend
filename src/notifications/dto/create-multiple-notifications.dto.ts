@@ -2,7 +2,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { User } from '../../users/domain/user';
-
 export class CreateMultipleNotificationsDto {
   @ApiProperty({
     type: [String],
@@ -11,7 +10,6 @@ export class CreateMultipleNotificationsDto {
   @IsArray()
   @IsNotEmpty()
   userIds: User['id'][];
-
   @ApiProperty({
     type: String,
     example: 'New Assignment',
@@ -19,7 +17,6 @@ export class CreateMultipleNotificationsDto {
   @IsNotEmpty()
   @IsString()
   title: string;
-
   @ApiProperty({
     type: String,
     example: 'You have been assigned to a new project.',
@@ -27,7 +24,6 @@ export class CreateMultipleNotificationsDto {
   @IsNotEmpty()
   @IsString()
   message: string;
-
   @ApiPropertyOptional({
     type: String,
     example: '/projects/123',
@@ -35,4 +31,11 @@ export class CreateMultipleNotificationsDto {
   @IsOptional()
   @IsString()
   link?: string;
+  @ApiPropertyOptional({
+    type: String,
+    example: 'View Project',
+  })
+  @IsOptional()
+  @IsString()
+  linkLabel?: string;
 }

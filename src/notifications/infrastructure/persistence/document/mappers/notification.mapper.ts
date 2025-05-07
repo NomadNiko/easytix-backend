@@ -1,7 +1,6 @@
 // src/notifications/infrastructure/persistence/document/mappers/notification.mapper.ts
 import { Notification } from '../../../../domain/notification';
 import { NotificationSchemaClass } from '../entities/notification.schema';
-
 export class NotificationMapper {
   static toDomain(raw: NotificationSchemaClass): Notification {
     const domainEntity = new Notification();
@@ -11,11 +10,11 @@ export class NotificationMapper {
     domainEntity.message = raw.message;
     domainEntity.isRead = raw.isRead;
     domainEntity.link = raw.link;
+    domainEntity.linkLabel = raw.linkLabel;
     domainEntity.createdAt = raw.createdAt;
     domainEntity.updatedAt = raw.updatedAt;
     return domainEntity;
   }
-
   static toPersistence(domainEntity: Notification): NotificationSchemaClass {
     const persistenceSchema = new NotificationSchemaClass();
     if (domainEntity.id) {
@@ -28,6 +27,7 @@ export class NotificationMapper {
     persistenceSchema.message = domainEntity.message;
     persistenceSchema.isRead = domainEntity.isRead;
     persistenceSchema.link = domainEntity.link;
+    persistenceSchema.linkLabel = domainEntity.linkLabel;
     persistenceSchema.createdAt = domainEntity.createdAt;
     persistenceSchema.updatedAt = domainEntity.updatedAt;
     return persistenceSchema;

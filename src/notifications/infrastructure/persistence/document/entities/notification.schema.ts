@@ -3,10 +3,8 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { now, HydratedDocument } from 'mongoose';
 import { EntityDocumentHelper } from '../../../../../utils/document-entity-helper';
 import { UserSchemaClass } from '../../../../../users/infrastructure/persistence/document/entities/user.schema';
-
 export type NotificationSchemaDocument =
   HydratedDocument<NotificationSchemaClass>;
-
 @Schema({
   timestamps: true,
   toJSON: {
@@ -21,26 +19,21 @@ export class NotificationSchemaClass extends EntityDocumentHelper {
     required: true,
   })
   user: UserSchemaClass;
-
   @Prop({ required: true })
   title: string;
-
   @Prop({ required: true })
   message: string;
-
   @Prop({ default: false })
   isRead: boolean;
-
   @Prop()
   link?: string;
-
+  @Prop()
+  linkLabel?: string;
   @Prop({ default: now })
   createdAt: Date;
-
   @Prop({ default: now })
   updatedAt: Date;
 }
-
 export const NotificationSchema = SchemaFactory.createForClass(
   NotificationSchemaClass,
 );

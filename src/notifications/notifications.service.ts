@@ -133,12 +133,10 @@ export class NotificationsService {
     const allUsers = await this.usersService.findManyWithPagination({
       paginationOptions: { page: 1, limit: 1000 },
     });
-
     // Create notifications in batches (to avoid memory issues)
     const batchSize = 100;
     for (let i = 0; i < allUsers.length; i += batchSize) {
       const userBatch = allUsers.slice(i, i + batchSize);
-
       const notificationPromises = userBatch.map((user) =>
         this.notificationRepository.create({
           userId: user.id,
@@ -146,9 +144,9 @@ export class NotificationsService {
           message: createBroadcastDto.message,
           isRead: false,
           link: createBroadcastDto.link,
+          linkLabel: createBroadcastDto.linkLabel,
         }),
       );
-
       await Promise.all(notificationPromises);
     }
   }
@@ -164,9 +162,9 @@ export class NotificationsService {
         message: createMultipleDto.message,
         isRead: false,
         link: createMultipleDto.link,
+        linkLabel: createMultipleDto.linkLabel,
       }),
     );
-
     await Promise.all(notificationPromises);
   }
 }

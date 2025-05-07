@@ -2,7 +2,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { User } from '../../users/domain/user';
-
 export class CreateNotificationDto {
   @ApiProperty({
     type: String,
@@ -11,7 +10,6 @@ export class CreateNotificationDto {
   @IsNotEmpty()
   @IsString()
   userId: User['id'];
-
   @ApiProperty({
     type: String,
     example: 'Ticket Assigned',
@@ -19,7 +17,6 @@ export class CreateNotificationDto {
   @IsNotEmpty()
   @IsString()
   title: string;
-
   @ApiProperty({
     type: String,
     example: 'You have been assigned ticket #12345',
@@ -27,7 +24,6 @@ export class CreateNotificationDto {
   @IsNotEmpty()
   @IsString()
   message: string;
-
   @ApiPropertyOptional({
     type: Boolean,
     example: false,
@@ -36,7 +32,6 @@ export class CreateNotificationDto {
   @IsOptional()
   @IsBoolean()
   isRead?: boolean;
-
   @ApiPropertyOptional({
     type: String,
     example: '/tickets/12345',
@@ -44,4 +39,11 @@ export class CreateNotificationDto {
   @IsOptional()
   @IsString()
   link?: string;
+  @ApiPropertyOptional({
+    type: String,
+    example: 'View Ticket',
+  })
+  @IsOptional()
+  @IsString()
+  linkLabel?: string;
 }
