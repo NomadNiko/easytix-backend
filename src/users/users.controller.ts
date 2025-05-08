@@ -1,3 +1,4 @@
+// src/users/users.controller.ts
 import {
   Controller,
   Get,
@@ -37,8 +38,7 @@ import { RolesGuard } from '../roles/roles.guard';
 import { infinityPagination } from '../utils/infinity-pagination';
 
 @ApiBearerAuth()
-@Roles(RoleEnum.admin)
-@UseGuards(AuthGuard('jwt'), RolesGuard)
+@UseGuards(AuthGuard('jwt')) // Keep authentication, remove role restriction
 @ApiTags('Users')
 @Controller({
   path: 'users',
@@ -54,6 +54,8 @@ export class UsersController {
     groups: ['admin'],
   })
   @Post()
+  @Roles(RoleEnum.admin) // Apply role restriction to create
+  @UseGuards(RolesGuard) // Add RolesGuard here
   @HttpCode(HttpStatus.CREATED)
   create(@Body() createProfileDto: CreateUserDto): Promise<User> {
     return this.usersService.create(createProfileDto);
@@ -113,6 +115,8 @@ export class UsersController {
     groups: ['admin'],
   })
   @Patch(':id')
+  @Roles(RoleEnum.admin) // Apply role restriction to update
+  @UseGuards(RolesGuard) // Add RolesGuard here
   @HttpCode(HttpStatus.OK)
   @ApiParam({
     name: 'id',
@@ -127,6 +131,8 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @Roles(RoleEnum.admin) // Apply role restriction to delete
+  @UseGuards(RolesGuard) // Add RolesGuard here
   @ApiParam({
     name: 'id',
     type: String,
