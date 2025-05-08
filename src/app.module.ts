@@ -25,6 +25,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { MongooseConfigService } from './database/mongoose-config.service';
 import { UserDocumentsModule } from './user-documents/user-documents.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { QueuesModule } from './queues/queues.module';
+import { CategoriesModule } from './categories/categories.module';
+import { TicketsModule } from './tickets/tickets.module';
+import { HistoryItemsModule } from './history-items/history-items.module';
 
 @Module({
   imports: [
@@ -73,6 +77,10 @@ import { NotificationsModule } from './notifications/notifications.module';
     FilesModule,
     UserDocumentsModule,
     NotificationsModule,
+    QueuesModule,
+    CategoriesModule,
+    TicketsModule,
+    HistoryItemsModule,
     AuthModule,
     AuthFacebookModule,
     AuthGoogleModule,
