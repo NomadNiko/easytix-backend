@@ -1,8 +1,8 @@
+// src/mail/mail.service.ts
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { I18nContext } from 'nestjs-i18n';
 import { MailData } from './interfaces/mail-data.interface';
-
 import { MaybeType } from '../utils/types/maybe.type';
 import { MailerService } from '../mailer/mailer.service';
 import path from 'path';
@@ -17,10 +17,11 @@ export class MailService {
 
   async userSignUp(mailData: MailData<{ hash: string }>): Promise<void> {
     const i18n = I18nContext.current();
-    let emailConfirmTitle: MaybeType<string>;
-    let text1: MaybeType<string>;
-    let text2: MaybeType<string>;
-    let text3: MaybeType<string>;
+    let emailConfirmTitle: MaybeType<string> = 'Confirm Email';
+    let text1: MaybeType<string> = 'Hey!';
+    let text2: MaybeType<string> = "You're almost ready to start enjoying";
+    let text3: MaybeType<string> =
+      'Simply click the big green button below to verify your email address.';
 
     if (i18n) {
       [emailConfirmTitle, text1, text2, text3] = await Promise.all([
@@ -40,8 +41,8 @@ export class MailService {
 
     await this.mailerService.sendMail({
       to: mailData.to,
-      subject: emailConfirmTitle,
-      text: `${url.toString()} ${emailConfirmTitle}`,
+      subject: emailConfirmTitle || 'Confirm Email',
+      text: `${url.toString()} ${emailConfirmTitle || 'Confirm Email'}`,
       templatePath: path.join(
         this.configService.getOrThrow('app.workingDirectory', {
           infer: true,
@@ -67,11 +68,13 @@ export class MailService {
     mailData: MailData<{ hash: string; tokenExpires: number }>,
   ): Promise<void> {
     const i18n = I18nContext.current();
-    let resetPasswordTitle: MaybeType<string>;
-    let text1: MaybeType<string>;
-    let text2: MaybeType<string>;
-    let text3: MaybeType<string>;
-    let text4: MaybeType<string>;
+    let resetPasswordTitle: MaybeType<string> = 'Reset Password';
+    let text1: MaybeType<string> = 'Trouble signing in?';
+    let text2: MaybeType<string> = 'Resetting your password is easy.';
+    let text3: MaybeType<string> =
+      'Just press the button below and follow the instructions.';
+    let text4: MaybeType<string> =
+      'If you did not make this request then please ignore this email.';
 
     if (i18n) {
       [resetPasswordTitle, text1, text2, text3, text4] = await Promise.all([
@@ -93,8 +96,8 @@ export class MailService {
 
     await this.mailerService.sendMail({
       to: mailData.to,
-      subject: resetPasswordTitle,
-      text: `${url.toString()} ${resetPasswordTitle}`,
+      subject: resetPasswordTitle || 'Reset Password',
+      text: `${url.toString()} ${resetPasswordTitle || 'Reset Password'}`,
       templatePath: path.join(
         this.configService.getOrThrow('app.workingDirectory', {
           infer: true,
@@ -121,10 +124,11 @@ export class MailService {
 
   async confirmNewEmail(mailData: MailData<{ hash: string }>): Promise<void> {
     const i18n = I18nContext.current();
-    let emailConfirmTitle: MaybeType<string>;
-    let text1: MaybeType<string>;
-    let text2: MaybeType<string>;
-    let text3: MaybeType<string>;
+    let emailConfirmTitle: MaybeType<string> = 'Confirm Email';
+    let text1: MaybeType<string> = 'Hey!';
+    let text2: MaybeType<string> = 'Confirm your new email address.';
+    let text3: MaybeType<string> =
+      'Simply click the big green button below to verify your email address.';
 
     if (i18n) {
       [emailConfirmTitle, text1, text2, text3] = await Promise.all([
@@ -144,8 +148,8 @@ export class MailService {
 
     await this.mailerService.sendMail({
       to: mailData.to,
-      subject: emailConfirmTitle,
-      text: `${url.toString()} ${emailConfirmTitle}`,
+      subject: emailConfirmTitle || 'Confirm Email',
+      text: `${url.toString()} ${emailConfirmTitle || 'Confirm Email'}`,
       templatePath: path.join(
         this.configService.getOrThrow('app.workingDirectory', {
           infer: true,

@@ -1,5 +1,5 @@
+// src/mail/config/mail.config.ts
 import { registerAs } from '@nestjs/config';
-
 import {
   IsString,
   IsInt,
@@ -44,11 +44,14 @@ class EnvironmentVariablesValidator {
 
   @IsBoolean()
   MAIL_REQUIRE_TLS: boolean;
+
+  @IsString()
+  @IsOptional()
+  RESEND_API_KEY: string;
 }
 
 export default registerAs<MailConfig>('mail', () => {
   validateConfig(process.env, EnvironmentVariablesValidator);
-
   return {
     port: process.env.MAIL_PORT ? parseInt(process.env.MAIL_PORT, 10) : 587,
     host: process.env.MAIL_HOST,
@@ -59,5 +62,6 @@ export default registerAs<MailConfig>('mail', () => {
     ignoreTLS: process.env.MAIL_IGNORE_TLS === 'true',
     secure: process.env.MAIL_SECURE === 'true',
     requireTLS: process.env.MAIL_REQUIRE_TLS === 'true',
+    resendApiKey: process.env.RESEND_API_KEY,
   };
 });
