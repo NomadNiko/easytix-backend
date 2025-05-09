@@ -29,6 +29,7 @@ import { QueuesModule } from './queues/queues.module';
 import { CategoriesModule } from './categories/categories.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { HistoryItemsModule } from './history-items/history-items.module';
+import { TicketDocumentsModule } from './ticket-documents/ticket-documents.module';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { HistoryItemsModule } from './history-items/history-items.module';
     CategoriesModule,
     TicketsModule,
     HistoryItemsModule,
+    TicketDocumentsModule,
     AuthModule,
     AuthFacebookModule,
     AuthGoogleModule,
