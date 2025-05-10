@@ -1,8 +1,10 @@
 // src/tickets/tickets.service.ts
 import {
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { HistoryItemsService } from '../history-items/history-items.service';
 import { RoleEnum } from '../roles/roles.enum';
@@ -13,12 +15,15 @@ import { Ticket, TicketPriority, TicketStatus } from './domain/ticket';
 import { TicketRepository } from './infrastructure/persistence/ticket.repository';
 import { IPaginationOptions } from '../utils/types/pagination-options';
 import { HistoryItemType } from '../history-items/domain/history-item';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class TicketsService {
   constructor(
     private readonly ticketRepository: TicketRepository,
+    @Inject(forwardRef(() => HistoryItemsService))
     private readonly historyItemsService: HistoryItemsService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(
@@ -45,6 +50,16 @@ export class TicketsService {
       details: 'Ticket created',
     });
 
+    // 1) Notification: When a user opens a ticket, send them a notification
+    await this.notificationsService.create({
+      userId: userId,
+      title: 'Ticket Created',
+      message: `You have created a new ticket: "${ticket.title}"`,
+      isRead: false,
+      link: `/tickets/${ticket.id}`,
+      linkLabel: 'View Ticket',
+    });
+
     return ticket;
   }
 
@@ -69,7 +84,6 @@ export class TicketsService {
             : undefined,
         }
       : undefined;
-
     return this.ticketRepository.findAll(paginationOptions, formattedFilters);
   }
 
@@ -82,11 +96,43 @@ export class TicketsService {
   }
 
   async update(id: string, updateTicketDto: UpdateTicketDto): Promise<Ticket> {
-    const ticket = await this.ticketRepository.update(id, updateTicketDto);
-    if (!ticket) {
+    const ticket = await this.findById(id);
+    const oldTicket = { ...ticket }; // Save old state to compare changes
+
+    const updatedTicket = await this.ticketRepository.update(
+      id,
+      updateTicketDto,
+    );
+    if (!updatedTicket) {
       throw new NotFoundException('Ticket not found');
     }
-    return ticket;
+
+    // Handle notifications for category and priority changes
+    if (
+      updateTicketDto.categoryId &&
+      updateTicketDto.categoryId !== oldTicket.categoryId
+    ) {
+      await this.historyItemsService.create({
+        ticketId: id,
+        userId: 'system', // You might want to pass the actual user ID here
+        type: HistoryItemType.CATEGORY_CHANGED,
+        details: `Category changed to ${updateTicketDto.categoryId}`,
+      });
+    }
+
+    if (
+      updateTicketDto.priority &&
+      updateTicketDto.priority !== oldTicket.priority
+    ) {
+      await this.historyItemsService.create({
+        ticketId: id,
+        userId: 'system', // You might want to pass the actual user ID here
+        type: HistoryItemType.PRIORITY_CHANGED,
+        details: `Priority changed to ${updateTicketDto.priority}`,
+      });
+    }
+
+    return updatedTicket;
   }
 
   async assign(
@@ -95,13 +141,10 @@ export class TicketsService {
     assigneeId: string,
   ): Promise<Ticket> {
     const ticket = await this.findById(ticketId);
-
     const oldAssigneeId = ticket.assignedToId;
-
     const updated = await this.ticketRepository.update(ticketId, {
       assignedToId: assigneeId,
     });
-
     if (!updated) {
       throw new NotFoundException('Ticket not found');
     }
@@ -111,7 +154,19 @@ export class TicketsService {
       ticketId,
       userId,
       type: HistoryItemType.ASSIGNED,
-      details: `Ticket assigned ${oldAssigneeId ? 'from user ' + oldAssigneeId + ' ' : ''}to user ${assigneeId}`,
+      details: `Ticket assigned ${
+        oldAssigneeId ? 'from user ' + oldAssigneeId + ' ' : ''
+      }to user ${assigneeId}`,
+    });
+
+    // 2) Notification: When a user is assigned to a ticket, notify them
+    await this.notificationsService.create({
+      userId: assigneeId,
+      title: 'Ticket Assigned',
+      message: `You have been assigned to ticket: "${ticket.title}"`,
+      isRead: false,
+      link: `/tickets/${ticket.id}`,
+      linkLabel: 'View Ticket',
     });
 
     return updated;
@@ -123,7 +178,6 @@ export class TicketsService {
     status: TicketStatus,
   ): Promise<Ticket> {
     const ticket = await this.findById(ticketId);
-
     if (ticket.status === status) {
       return ticket; // No change needed
     }
@@ -131,7 +185,6 @@ export class TicketsService {
     const updated = await this.ticketRepository.update(ticketId, {
       status,
     });
-
     if (!updated) {
       throw new NotFoundException('Ticket not found');
     }
@@ -144,8 +197,46 @@ export class TicketsService {
         status === TicketStatus.CLOSED
           ? HistoryItemType.CLOSED
           : HistoryItemType.REOPENED,
-      details: `Ticket ${status === TicketStatus.CLOSED ? 'closed' : 'reopened'}`,
+      details: `Ticket ${
+        status === TicketStatus.CLOSED ? 'closed' : 'reopened'
+      }`,
     });
+
+    // 3) Notification: When a ticket a user opens is closed or reopened, notify them
+    if (ticket.createdById && ticket.createdById !== userId) {
+      await this.notificationsService.create({
+        userId: ticket.createdById,
+        title: `Ticket ${
+          status === TicketStatus.CLOSED ? 'Closed' : 'Reopened'
+        }`,
+        message: `Your ticket "${ticket.title}" has been ${
+          status === TicketStatus.CLOSED ? 'closed' : 'reopened'
+        }.`,
+        isRead: false,
+        link: `/tickets/${ticket.id}`,
+        linkLabel: 'View Ticket',
+      });
+    }
+
+    // 5) Notification: When a ticket a user is assigned to changes status, notify them
+    if (
+      ticket.assignedToId &&
+      ticket.assignedToId !== userId &&
+      ticket.assignedToId !== ticket.createdById
+    ) {
+      await this.notificationsService.create({
+        userId: ticket.assignedToId,
+        title: `Ticket ${
+          status === TicketStatus.CLOSED ? 'Closed' : 'Reopened'
+        }`,
+        message: `Ticket "${ticket.title}" that you are assigned to has been ${
+          status === TicketStatus.CLOSED ? 'closed' : 'reopened'
+        }.`,
+        isRead: false,
+        link: `/tickets/${ticket.id}`,
+        linkLabel: 'View Ticket',
+      });
+    }
 
     return updated;
   }
@@ -156,12 +247,10 @@ export class TicketsService {
     documentId: string,
   ): Promise<Ticket> {
     const ticket = await this.findById(ticketId);
-
     const updated = await this.ticketRepository.addDocument(
       ticketId,
       documentId,
     );
-
     if (!updated) {
       throw new NotFoundException('Ticket not found');
     }
@@ -183,12 +272,10 @@ export class TicketsService {
     documentId: string,
   ): Promise<Ticket> {
     const ticket = await this.findById(ticketId);
-
     const updated = await this.ticketRepository.removeDocument(
       ticketId,
       documentId,
     );
-
     if (!updated) {
       throw new NotFoundException('Ticket not found');
     }
@@ -206,15 +293,33 @@ export class TicketsService {
 
   async remove(user: JwtPayloadType, id: string): Promise<void> {
     const ticket = await this.findById(id);
-
     // Add null check for user.role
     const userRoleId = user.role?.id;
-
     // Only admins or the creator can delete tickets
     if (userRoleId !== RoleEnum.admin && user.id !== ticket.createdById) {
       throw new ForbiddenException(
         'You do not have permission to delete this ticket',
       );
+    }
+
+    // Notify assignee if the ticket is being deleted and they're not the one deleting it
+    if (ticket.assignedToId && ticket.assignedToId !== user.id) {
+      await this.notificationsService.create({
+        userId: ticket.assignedToId,
+        title: 'Ticket Deleted',
+        message: `Ticket "${ticket.title}" that was assigned to you has been deleted.`,
+        isRead: false,
+      });
+    }
+
+    // Notify creator if the ticket is being deleted by admin and not by themselves
+    if (ticket.createdById !== user.id) {
+      await this.notificationsService.create({
+        userId: ticket.createdById,
+        title: 'Your Ticket Deleted',
+        message: `Your ticket "${ticket.title}" has been deleted.`,
+        isRead: false,
+      });
     }
 
     await this.ticketRepository.remove(id);
