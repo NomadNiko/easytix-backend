@@ -17,7 +17,7 @@
 
 ## Hexagonal Architecture
 
-NestJS Boilerplate is based on [Hexagonal Architecture](https://en.wikipedia.org/wiki/Hexagonal_architecture_(software)). This architecture is also known as Ports and Adapters.
+NestJS Boilerplate is based on [Hexagonal Architecture](<https://en.wikipedia.org/wiki/Hexagonal_architecture_(software)>). This architecture is also known as Ports and Adapters.
 
 ![Hexagonal Architecture Diagram](https://github.com/brocoders/nestjs-boilerplate/assets/6001723/6a6a763e-d1c9-43cc-910a-617cda3a71db)
 
@@ -94,11 +94,11 @@ export class UsersRelationalRepository implements UserRepository {
   async findByEmail(email: string): Promise<User> {
     // ...
   }
-  
+
   async findByRoles(roles: string[]): Promise<User> {
     // ...
   }
-  
+
   async findByIds(ids: string[]): Promise<User> {
     // ...
   }

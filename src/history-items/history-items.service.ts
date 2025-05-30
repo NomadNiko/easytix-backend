@@ -44,11 +44,13 @@ export class HistoryItemsService {
       switch (createHistoryItemDto.type) {
         case HistoryItemType.COMMENT:
           // Get comment author info
-          const commentAuthor = await this.usersService.findById(createHistoryItemDto.userId);
-          const commentAuthorName = commentAuthor 
-            ? `${commentAuthor.firstName} ${commentAuthor.lastName}` 
+          const commentAuthor = await this.usersService.findById(
+            createHistoryItemDto.userId,
+          );
+          const commentAuthorName = commentAuthor
+            ? `${commentAuthor.firstName} ${commentAuthor.lastName}`
             : 'A user';
-          
+
           // 4) Notify the ticket creator if they aren't the one who added the comment
           if (
             ticket.createdById &&
@@ -62,16 +64,20 @@ export class HistoryItemsService {
               link: `/tickets/${ticket.id}`,
               linkLabel: 'View Comment',
             });
-            
+
             // Send email notification
-            const ticketCreator = await this.usersService.findById(ticket.createdById);
+            const ticketCreator = await this.usersService.findById(
+              ticket.createdById,
+            );
             if (ticketCreator && ticketCreator.email) {
               await this.mailService.newComment({
                 to: ticketCreator.email,
                 data: {
                   ticket,
                   commentAuthor: commentAuthorName,
-                  commentPreview: createHistoryItemDto.details.substring(0, 100) + (createHistoryItemDto.details.length > 100 ? '...' : ''),
+                  commentPreview:
+                    createHistoryItemDto.details.substring(0, 100) +
+                    (createHistoryItemDto.details.length > 100 ? '...' : ''),
                   userName: ticketCreator.firstName || 'User',
                 },
               });

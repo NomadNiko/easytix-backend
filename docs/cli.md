@@ -22,7 +22,7 @@
 Generate resource with the following commands:
 
 ### For document oriented database (MongoDB + Mongoose)
-  
+
 ```bash
 npm run generate:resource:document -- --name ResourceName
 ```

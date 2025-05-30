@@ -62,27 +62,27 @@ Endpoint `/api/v1/files/upload` is used for uploading files, which returns `File
 1. Click "Edit"
 1. Paste the following configuration
 
-    ```json
-    [
-      {
-        "AllowedHeaders": ["*"],
-        "AllowedMethods": ["GET"],
-        "AllowedOrigins": ["*"],
-        "ExposeHeaders": []
-      }
-    ]
-    ```
+   ```json
+   [
+     {
+       "AllowedHeaders": ["*"],
+       "AllowedMethods": ["GET"],
+       "AllowedOrigins": ["*"],
+       "ExposeHeaders": []
+     }
+   ]
+   ```
 
 1. Click "Save changes"
 1. Update `.env` file with the following variables:
 
-    ```dotenv
-    FILE_DRIVER=s3
-    ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID
-    SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY
-    AWS_S3_REGION=YOUR_AWS_S3_REGION
-    AWS_DEFAULT_S3_BUCKET=YOUR_AWS_DEFAULT_S3_BUCKET
-    ```
+   ```dotenv
+   FILE_DRIVER=s3
+   ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID
+   SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY
+   AWS_S3_REGION=YOUR_AWS_S3_REGION
+   AWS_DEFAULT_S3_BUCKET=YOUR_AWS_DEFAULT_S3_BUCKET
+   ```
 
 ### An example of uploading an avatar to a user profile (S3)
 
@@ -114,16 +114,16 @@ Endpoint `/api/v1/files/upload` is used for uploading files. In this case `/api/
 1. Click "Edit"
 1. Paste the following configuration
 
-    ```json
-    [
-      {
-        "AllowedHeaders": ["*"],
-        "AllowedMethods": ["GET", "PUT"],
-        "AllowedOrigins": ["*"],
-        "ExposeHeaders": []
-      }
-    ]
-    ```
+   ```json
+   [
+     {
+       "AllowedHeaders": ["*"],
+       "AllowedMethods": ["GET", "PUT"],
+       "AllowedOrigins": ["*"],
+       "ExposeHeaders": []
+     }
+   ]
+   ```
 
    For production we recommend to use more strict configuration:
 
@@ -135,25 +135,25 @@ Endpoint `/api/v1/files/upload` is used for uploading files. In this case `/api/
        "AllowedOrigins": ["https://your-domain.com"],
        "ExposeHeaders": []
      },
-      {
-        "AllowedHeaders": ["*"],
-        "AllowedMethods": ["GET"],
-        "AllowedOrigins": ["*"],
-        "ExposeHeaders": []
-      }
+     {
+       "AllowedHeaders": ["*"],
+       "AllowedMethods": ["GET"],
+       "AllowedOrigins": ["*"],
+       "ExposeHeaders": []
+     }
    ]
    ```
 
 1. Click "Save changes"
 1. Update `.env` file with the following variables:
 
-    ```dotenv
-    FILE_DRIVER=s3-presigned
-    ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID
-    SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY
-    AWS_S3_REGION=YOUR_AWS_S3_REGION
-    AWS_DEFAULT_S3_BUCKET=YOUR_AWS_DEFAULT_S3_BUCKET
-    ```
+   ```dotenv
+   FILE_DRIVER=s3-presigned
+   ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID
+   SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY
+   AWS_S3_REGION=YOUR_AWS_S3_REGION
+   AWS_DEFAULT_S3_BUCKET=YOUR_AWS_DEFAULT_S3_BUCKET
+   ```
 
 ### An example of uploading an avatar to a user profile (S3 Presigned URL)
 
@@ -161,7 +161,7 @@ Endpoint `/api/v1/files/upload` is used for uploading files. In this case `/api/
 sequenceDiagram
     participant C as AWS S3
     participant A as Fronted App
-    
+
     participant B as Backend App
 
     A->>B: Send file name (not binary file) via POST /api/v1/files/upload

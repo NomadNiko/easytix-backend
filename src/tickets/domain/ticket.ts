@@ -83,4 +83,11 @@ export class Ticket {
 
   @ApiProperty({ nullable: true })
   closedAt: Date | null;
+
+  @ApiProperty({
+    type: String,
+    example: 'Issue resolved by replacing toner cartridge',
+    nullable: true,
+  })
+  closingNotes: string | null;
 }

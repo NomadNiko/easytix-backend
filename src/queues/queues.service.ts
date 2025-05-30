@@ -64,7 +64,7 @@ export class QueuesService {
     if (!queue) {
       throw new NotFoundException('Queue not found');
     }
-    
+
     // Send email notification to the user
     const user = await this.usersService.findById(userId);
     if (user && user.email) {
@@ -76,7 +76,7 @@ export class QueuesService {
           action: 'added',
         },
       });
-      
+
       // Also send to support@nomadsoft.us for tracking
       await this.mailService.queueAssignment({
         to: 'support@nomadsoft.us',
@@ -87,7 +87,7 @@ export class QueuesService {
         },
       });
     }
-    
+
     return queue;
   }
 
@@ -96,7 +96,7 @@ export class QueuesService {
     if (!queue) {
       throw new NotFoundException('Queue not found');
     }
-    
+
     // Send email notification to the user
     const user = await this.usersService.findById(userId);
     if (user && user.email) {
@@ -108,7 +108,7 @@ export class QueuesService {
           action: 'removed',
         },
       });
-      
+
       // Also send to support@nomadsoft.us for tracking
       await this.mailService.queueAssignment({
         to: 'support@nomadsoft.us',
@@ -119,7 +119,7 @@ export class QueuesService {
         },
       });
     }
-    
+
     return queue;
   }
 

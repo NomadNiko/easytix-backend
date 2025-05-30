@@ -46,6 +46,7 @@ export class TicketsService {
       assignedToId: null,
       createdById: userId,
       documentIds: createTicketDto.documentIds || [],
+      closingNotes: null,
     });
 
     // Create history item for ticket creation
@@ -148,10 +149,26 @@ export class TicketsService {
     const ticket = await this.findById(id);
     const oldTicket = { ...ticket }; // Save old state to compare changes
 
-    const updatedTicket = await this.ticketRepository.update(
-      id,
-      updateTicketDto,
-    );
+    // Handle closing notes logic
+    const updateData = { ...updateTicketDto };
+
+    // If reopening a ticket, clear closing notes
+    if (
+      updateTicketDto.status === TicketStatus.OPENED &&
+      oldTicket.status === TicketStatus.CLOSED
+    ) {
+      updateData.closingNotes = null;
+    }
+
+    // If closing a ticket and closingNotes are provided, add closedAt timestamp
+    if (
+      updateTicketDto.status === TicketStatus.CLOSED &&
+      oldTicket.status !== TicketStatus.CLOSED
+    ) {
+      updateData.closedAt = new Date();
+    }
+
+    const updatedTicket = await this.ticketRepository.update(id, updateData);
     if (!updatedTicket) {
       throw new NotFoundException('Ticket not found');
     }
@@ -181,7 +198,9 @@ export class TicketsService {
       });
 
       // Send email notification for priority change
-      const ticketCreator = await this.usersService.findById(updatedTicket.createdById);
+      const ticketCreator = await this.usersService.findById(
+        updatedTicket.createdById,
+      );
       if (ticketCreator && ticketCreator.email) {
         await this.mailService.ticketPriorityChanged({
           to: ticketCreator.email,
@@ -213,7 +232,8 @@ export class TicketsService {
                 to: queueUser.email,
                 data: {
                   ticket: updatedTicket,
-                  submittedBy: ticketCreator?.email || updatedTicket.createdById,
+                  submittedBy:
+                    ticketCreator?.email || updatedTicket.createdById,
                   recipientName: queueUser.firstName || undefined,
                 },
               });
@@ -263,7 +283,7 @@ export class TicketsService {
     // Send email to ticket creator about assignment
     const ticketCreator = await this.usersService.findById(updated.createdById);
     const assignedUser = await this.usersService.findById(assigneeId);
-    
+
     if (ticketCreator && assignedUser && ticketCreator.email) {
       await this.mailService.ticketAssigned({
         to: ticketCreator.email,
@@ -282,17 +302,32 @@ export class TicketsService {
     userId: string,
     ticketId: string,
     status: TicketStatus,
+    closingNotes?: string,
   ): Promise<Ticket> {
     const ticket = await this.findById(ticketId);
     const oldStatus = ticket.status;
-    
+
     if (ticket.status === status) {
       return ticket; // No change needed
     }
 
-    const updated = await this.ticketRepository.update(ticketId, {
-      status,
-    });
+    const updateData: any = { status };
+
+    // Handle closing notes logic
+    if (status === TicketStatus.CLOSED && oldStatus !== TicketStatus.CLOSED) {
+      updateData.closedAt = new Date();
+      if (closingNotes) {
+        updateData.closingNotes = closingNotes;
+      }
+    } else if (
+      status === TicketStatus.OPENED &&
+      oldStatus === TicketStatus.CLOSED
+    ) {
+      // Clear closing notes when reopening
+      updateData.closingNotes = null;
+    }
+
+    const updated = await this.ticketRepository.update(ticketId, updateData);
     if (!updated) {
       throw new NotFoundException('Ticket not found');
     }
@@ -354,7 +389,7 @@ export class TicketsService {
         [TicketStatus.OPENED]: 'Opened',
         [TicketStatus.CLOSED]: 'Closed',
       };
-      
+
       // Special handling for resolved status (using closed with resolution message)
       if (oldStatus === TicketStatus.OPENED && status === TicketStatus.CLOSED) {
         // This could be a resolution - send both resolved and closed emails
@@ -363,11 +398,12 @@ export class TicketsService {
           data: {
             ticket: updated,
             userName: ticketCreator.firstName || 'User',
-            resolutionSummary: 'Your issue has been resolved by our support team.',
+            resolutionSummary:
+              'Your issue has been resolved by our support team.',
           },
         });
       }
-      
+
       // Always send status change email
       await this.mailService.ticketStatusChanged({
         to: ticketCreator.email,
@@ -386,6 +422,7 @@ export class TicketsService {
           data: {
             ticket: updated,
             userName: ticketCreator.firstName || 'User',
+            closingNotes: updated.closingNotes || undefined,
           },
         });
       }

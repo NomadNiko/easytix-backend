@@ -54,4 +54,21 @@ export class UpdateTicketDto {
   @IsString()
   @IsOptional()
   assignedToId?: string | null;
+
+  @ApiPropertyOptional({
+    type: String,
+    example: 'Issue resolved by replacing toner cartridge',
+    nullable: true,
+  })
+  @IsString()
+  @IsOptional()
+  closingNotes?: string | null;
+
+  @ApiPropertyOptional({
+    type: Date,
+    example: '2023-12-01T10:30:00Z',
+    nullable: true,
+  })
+  @IsOptional()
+  closedAt?: Date | null;
 }

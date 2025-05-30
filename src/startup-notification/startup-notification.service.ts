@@ -29,8 +29,10 @@ export class StartupNotificationService implements OnModuleInit {
   }
 
   private async sendStartupNotification() {
-    const appName = this.configService.get('app.name', { infer: true }) || 'EasyTix';
-    const nodeEnv = this.configService.get('app.nodeEnv', { infer: true }) || 'production';
+    const appName =
+      this.configService.get('app.name', { infer: true }) || 'EasyTix';
+    const nodeEnv =
+      this.configService.get('app.nodeEnv', { infer: true }) || 'production';
     const frontendDomain = this.configService.get('app.frontendDomain', {
       infer: true,
     });
@@ -66,8 +68,14 @@ export class StartupNotificationService implements OnModuleInit {
       { label: 'Hostname', value: serverInfo.hostname },
       { label: 'Platform', value: serverInfo.platform },
       { label: 'Node Version', value: serverInfo.nodeVersion },
-      { label: 'System Uptime', value: `${Math.round(serverInfo.uptime / 60)} minutes` },
-      { label: 'Memory (Total/Free)', value: `${serverInfo.memory.total} / ${serverInfo.memory.free}` },
+      {
+        label: 'System Uptime',
+        value: `${Math.round(serverInfo.uptime / 60)} minutes`,
+      },
+      {
+        label: 'Memory (Total/Free)',
+        value: `${serverInfo.memory.total} / ${serverInfo.memory.free}`,
+      },
       { label: 'Started At', value: new Date().toLocaleString() },
     ];
 
@@ -84,7 +92,8 @@ export class StartupNotificationService implements OnModuleInit {
         greeting: '🚀 Server Successfully Started',
         mainText: `The ${appName} server has been started successfully and is now operational.`,
         highlights,
-        warningText: 'If you did not expect this server restart, please investigate immediately for potential security issues.',
+        warningText:
+          'If you did not expect this server restart, please investigate immediately for potential security issues.',
         footerText: 'This is an automated security notification.',
       },
     });

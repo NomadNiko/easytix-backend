@@ -1,121 +1,219 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{title}}</title>
-  <style>
-    /* Reset styles */
-    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
-    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
-    img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
-    
-    /* Import Oxanium font */
-    @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700&display=swap');
-    
-    /* Base styles */
-    body {
-      margin: 0 !important;
-      padding: 0 !important;
-      background-color: #f5f5f5 !important;
-      font-family: 'Oxanium', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    }
-    
-    /* Blue color palette matching frontend */
-    .primary-color { color: #1890FF !important; }
-    .primary-bg { background-color: #1890FF !important; }
-    .light-bg { background-color: #E6F7FF !important; }
-    .dark-primary { color: #0050B3 !important; }
-    
-    /* Responsive styles */
-    @media screen and (max-width: 600px) {
-      .container { width: 100% !important; }
-      .content-padding { padding: 20px !important; }
-      .button { width: 100% !important; text-align: center !important; }
-    }
-  </style>
-</head>
-<body style="margin: 0; padding: 0; background-color: #f5f5f5;">
-  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f5;">
-    <tr>
-      <td align="center" style="padding: 40px 20px;">
-        <!-- Email Container -->
-        <table class="container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); overflow: hidden;">
-          
-          <!-- Header -->
-          <tr>
-            <td style="background: linear-gradient(135deg, #1890FF 0%, #0050B3 100%); padding: 40px 30px; text-align: center;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600; letter-spacing: -0.5px;">{{app_name}}</h1>
-              {{#if subtitle}}
-              <p style="margin: 10px 0 0 0; color: #E6F7FF; font-size: 16px; opacity: 0.9;">{{subtitle}}</p>
-              {{/if}}
-            </td>
-          </tr>
-          
-          <!-- Content -->
-          <tr>
-            <td class="content-padding" style="padding: 40px 30px;">
-              {{#if greeting}}
-              <h2 style="margin: 0 0 20px 0; color: #1a1a1a; font-size: 24px; font-weight: 600;">{{greeting}}</h2>
-              {{/if}}
-              
-              {{#if mainText}}
-              <p style="margin: 0 0 20px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">{{mainText}}</p>
-              {{/if}}
-              
-              {{#if highlights}}
-              <div style="background-color: #E6F7FF; border-left: 4px solid #1890FF; padding: 20px; margin: 30px 0; border-radius: 4px;">
-                {{#each highlights}}
-                <p style="margin: 0 0 10px 0; color: #0050B3; font-size: 15px;">
-                  {{#if this.label}}<strong>{{this.label}}:</strong>{{/if}} {{this.value}}
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>{{title}}</title>
+    <style>
+      /* Reset styles */
+      body,
+      table,
+      td,
+      a {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+      table,
+      td {
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+      }
+      img {
+        -ms-interpolation-mode: bicubic;
+        border: 0;
+        outline: none;
+        text-decoration: none;
+      }
+
+      /* Import Oxanium font */
+      @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700&display=swap');
+
+      /* Base styles */
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background-color: #f5f5f5 !important;
+        font-family:
+          'Oxanium',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          'Roboto',
+          'Oxygen',
+          'Ubuntu',
+          'Cantarell',
+          'Fira Sans',
+          'Droid Sans',
+          'Helvetica Neue',
+          sans-serif;
+      }
+
+      /* Blue color palette matching frontend */
+      .primary-color {
+        color: #1890ff !important;
+      }
+      .primary-bg {
+        background-color: #1890ff !important;
+      }
+      .light-bg {
+        background-color: #e6f7ff !important;
+      }
+      .dark-primary {
+        color: #0050b3 !important;
+      }
+
+      /* Responsive styles */
+      @media screen and (max-width: 600px) {
+        .container {
+          width: 100% !important;
+        }
+        .content-padding {
+          padding: 20px !important;
+        }
+        .button {
+          width: 100% !important;
+          text-align: center !important;
+        }
+      }
+    </style>
+  </head>
+  <body style='margin: 0; padding: 0; background-color: #f5f5f5;'>
+    <table
+      role='presentation'
+      cellspacing='0'
+      cellpadding='0'
+      border='0'
+      width='100%'
+      style='background-color: #f5f5f5;'
+    >
+      <tr>
+        <td align='center' style='padding: 40px 20px;'>
+          <!-- Email Container -->
+          <table
+            class='container'
+            role='presentation'
+            cellspacing='0'
+            cellpadding='0'
+            border='0'
+            width='600'
+            style='background-color: #ffffff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); overflow: hidden;'
+          >
+
+            <!-- Header -->
+            <tr>
+              <td
+                style='background: linear-gradient(135deg, #1890FF 0%, #0050B3 100%); padding: 40px 30px; text-align: center;'
+              >
+                <h1
+                  style='margin: 0; color: #ffffff; font-size: 28px; font-weight: 600; letter-spacing: -0.5px;'
+                >{{app_name}}</h1>
+                {{#if subtitle}}
+                  <p
+                    style='margin: 10px 0 0 0; color: #E6F7FF; font-size: 16px; opacity: 0.9;'
+                  >{{subtitle}}</p>
+                {{/if}}
+              </td>
+            </tr>
+
+            <!-- Content -->
+            <tr>
+              <td class='content-padding' style='padding: 40px 30px;'>
+                {{#if greeting}}
+                  <h2
+                    style='margin: 0 0 20px 0; color: #1a1a1a; font-size: 24px; font-weight: 600;'
+                  >{{greeting}}</h2>
+                {{/if}}
+
+                {{#if mainText}}
+                  <p
+                    style='margin: 0 0 20px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;'
+                  >{{mainText}}</p>
+                {{/if}}
+
+                {{#if highlights}}
+                  <div
+                    style='background-color: #E6F7FF; border-left: 4px solid #1890FF; padding: 20px; margin: 30px 0; border-radius: 4px;'
+                  >
+                    {{#each highlights}}
+                      <p
+                        style='margin: 0 0 10px 0; color: #0050B3; font-size: 15px;'
+                      >
+                        {{#if this.label}}<strong
+                          >{{this.label}}:</strong>{{/if}}
+                        {{this.value}}
+                      </p>
+                    {{/each}}
+                  </div>
+                {{/if}}
+
+                {{#if actionUrl}}
+                  <table
+                    role='presentation'
+                    cellspacing='0'
+                    cellpadding='0'
+                    border='0'
+                    align='center'
+                    style='margin: 30px auto;'
+                  >
+                    <tr>
+                      <td
+                        style='border-radius: 8px; background: linear-gradient(135deg, #1890FF 0%, #096DD9 100%); box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);'
+                      >
+                        <a
+                          href='{{actionUrl}}'
+                          target='_blank'
+                          style='display: inline-block; padding: 14px 32px; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 8px;'
+                        >{{actionTitle}}</a>
+                      </td>
+                    </tr>
+                  </table>
+                {{/if}}
+
+                {{#if secondaryText}}
+                  <p
+                    style='margin: 20px 0 0 0; color: #6a6a6a; font-size: 14px; line-height: 1.6;'
+                  >{{secondaryText}}</p>
+                {{/if}}
+
+                {{#if warningText}}
+                  <div
+                    style='background-color: #fff7e6; border: 1px solid #ffd591; padding: 15px; margin: 20px 0; border-radius: 4px;'
+                  >
+                    <p style='margin: 0; color: #ad6800; font-size: 14px;'>
+                      <strong>⚠️ Important:</strong>
+                      {{warningText}}
+                    </p>
+                  </div>
+                {{/if}}
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td
+                style='background-color: #fafafa; padding: 30px; text-align: center; border-top: 1px solid #eeeeee;'
+              >
+                <p style='margin: 0 0 10px 0; color: #8a8a8a; font-size: 14px;'>
+                  {{#if footerText}}{{footerText}}{{else}}Thank you for using
+                    {{app_name}}{{/if}}
                 </p>
-                {{/each}}
-              </div>
-              {{/if}}
-              
-              {{#if actionUrl}}
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin: 30px auto;">
-                <tr>
-                  <td style="border-radius: 8px; background: linear-gradient(135deg, #1890FF 0%, #096DD9 100%); box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);">
-                    <a href="{{actionUrl}}" target="_blank" style="display: inline-block; padding: 14px 32px; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 8px;">{{actionTitle}}</a>
-                  </td>
-                </tr>
-              </table>
-              {{/if}}
-              
-              {{#if secondaryText}}
-              <p style="margin: 20px 0 0 0; color: #6a6a6a; font-size: 14px; line-height: 1.6;">{{secondaryText}}</p>
-              {{/if}}
-              
-              {{#if warningText}}
-              <div style="background-color: #fff7e6; border: 1px solid #ffd591; padding: 15px; margin: 20px 0; border-radius: 4px;">
-                <p style="margin: 0; color: #ad6800; font-size: 14px;">
-                  <strong>⚠️ Important:</strong> {{warningText}}
+                <p style='margin: 0; color: #aaaaaa; font-size: 12px;'>
+                  ©
+                  {{currentYear}}
+                  {{app_name}}. All rights reserved.
                 </p>
-              </div>
-              {{/if}}
-            </td>
-          </tr>
-          
-          <!-- Footer -->
-          <tr>
-            <td style="background-color: #fafafa; padding: 30px; text-align: center; border-top: 1px solid #eeeeee;">
-              <p style="margin: 0 0 10px 0; color: #8a8a8a; font-size: 14px;">
-                {{#if footerText}}{{footerText}}{{else}}Thank you for using {{app_name}}{{/if}}
-              </p>
-              <p style="margin: 0; color: #aaaaaa; font-size: 12px;">
-                © {{currentYear}} {{app_name}}. All rights reserved.
-              </p>
-              {{#if unsubscribeUrl}}
-              <p style="margin: 10px 0 0 0;">
-                <a href="{{unsubscribeUrl}}" style="color: #1890FF; font-size: 12px; text-decoration: none;">Unsubscribe</a>
-              </p>
-              {{/if}}
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
+                {{#if unsubscribeUrl}}
+                  <p style='margin: 10px 0 0 0;'>
+                    <a
+                      href='{{unsubscribeUrl}}'
+                      style='color: #1890FF; font-size: 12px; text-decoration: none;'
+                    >Unsubscribe</a>
+                  </p>
+                {{/if}}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
 </html>

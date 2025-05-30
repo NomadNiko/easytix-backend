@@ -110,7 +110,12 @@ export class PublicTicketService {
     // Send appropriate email based on whether user is new or existing
     if (isNewUser && randomPassword) {
       // Send welcome email with password and ticket info
-      await this.sendWelcomeEmail(dto.email, randomPassword, dto.firstName, ticket.id);
+      await this.sendWelcomeEmail(
+        dto.email,
+        randomPassword,
+        dto.firstName,
+        ticket.id,
+      );
     } else {
       // Send ticket creation notification
       await this.sendTicketCreatedEmail(dto.email, dto.firstName, ticket);
@@ -137,7 +142,7 @@ export class PublicTicketService {
     // Import MailService instead of using MailerService directly
     const { MailService } = await import('../../mail/mail.service');
     const mailService = new MailService(this.mailerService, this.configService);
-    
+
     await mailService.welcomePublicTicket({
       to: email,
       data: {
@@ -156,7 +161,7 @@ export class PublicTicketService {
     // Import MailService instead of using MailerService directly
     const { MailService } = await import('../../mail/mail.service');
     const mailService = new MailService(this.mailerService, this.configService);
-    
+
     await mailService.ticketCreated({
       to: email,
       data: {

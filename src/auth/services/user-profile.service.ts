@@ -122,7 +122,7 @@ export class UserProfileService {
     delete userDto.oldPassword;
 
     const wasPasswordUpdated = !!userDto.password;
-    
+
     await this.usersService.update(userJwtPayload.id, userDto);
 
     // Send password change confirmation email if password was updated

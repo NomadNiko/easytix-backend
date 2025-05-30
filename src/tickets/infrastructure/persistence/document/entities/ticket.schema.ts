@@ -59,6 +59,9 @@ export class TicketSchemaClass extends EntityDocumentHelper {
 
   @Prop({ type: Date, default: null })
   closedAt: Date | null;
+
+  @Prop({ type: String, default: null })
+  closingNotes: string | null;
 }
 
 export const TicketSchema = SchemaFactory.createForClass(TicketSchemaClass);
