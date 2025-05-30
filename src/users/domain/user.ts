@@ -83,4 +83,54 @@ export class User {
 
   @ApiProperty()
   deletedAt: Date;
+
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: true,
+    description: 'User notification preferences',
+    example: {
+      ticketCreated: { email: true, notification: true },
+      ticketAssigned: { email: true, notification: true },
+      // ... other preferences
+    },
+  })
+  notificationPreferences?: NotificationPreferences;
+}
+
+export interface NotificationPreference {
+  email: boolean;
+  notification: boolean;
+}
+
+export interface NotificationPreferences {
+  // Ticket Events
+  ticketCreated: NotificationPreference;
+  ticketAssigned: NotificationPreference;
+  ticketStatusChanged: NotificationPreference;
+  ticketClosed: NotificationPreference;
+  ticketResolved: NotificationPreference;
+  ticketReopened: NotificationPreference;
+  ticketDeleted: NotificationPreference;
+  
+  // Comment Events
+  newComment: NotificationPreference;
+  
+  // Document Events
+  documentAdded: NotificationPreference;
+  documentRemoved: NotificationPreference;
+  
+  // Change Events
+  priorityChanged: NotificationPreference;
+  categoryChanged: NotificationPreference;
+  
+  // Queue Events
+  queueAssignment: NotificationPreference;
+  
+  // Security Events
+  passwordChanged: NotificationPreference;
+  emailChanged: NotificationPreference;
+  
+  // System Events
+  highPriorityAlert: NotificationPreference;
+  systemMaintenance: NotificationPreference;
 }

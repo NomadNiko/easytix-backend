@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -141,5 +142,44 @@ export class UsersController {
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: User['id']): Promise<void> {
     return this.usersService.remove(id);
+  }
+
+  @ApiOkResponse({
+    type: 'object',
+    description: 'User notification preferences',
+  })
+  @SerializeOptions({
+    groups: ['me'],
+  })
+  @Get(':id/notification-preferences')
+  @HttpCode(HttpStatus.OK)
+  @ApiParam({
+    name: 'id',
+    type: String,
+    required: true,
+  })
+  getNotificationPreferences(@Param('id') id: User['id']): Promise<any> {
+    return this.usersService.getNotificationPreferences(id);
+  }
+
+  @ApiOkResponse({
+    type: 'object',
+    description: 'Updated notification preferences',
+  })
+  @SerializeOptions({
+    groups: ['me'],
+  })
+  @Patch(':id/notification-preferences')
+  @HttpCode(HttpStatus.OK)
+  @ApiParam({
+    name: 'id',
+    type: String,
+    required: true,
+  })
+  updateNotificationPreferences(
+    @Param('id') id: User['id'],
+    @Body() updatePreferencesDto: UpdateNotificationPreferencesDto,
+  ): Promise<any> {
+    return this.usersService.updateNotificationPreferences(id, updatePreferencesDto);
   }
 }

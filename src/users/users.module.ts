@@ -9,6 +9,7 @@ import { UserCreateService } from './services/user-create.service';
 import { UserReadService } from './services/user-read.service';
 import { UserUpdateService } from './services/user-update.service';
 import { UserDeleteService } from './services/user-delete.service';
+import { NotificationPreferenceService } from './services/notification-preference.service';
 
 const infrastructurePersistenceModule = DocumentUserPersistenceModule;
 
@@ -20,8 +21,9 @@ const infrastructurePersistenceModule = DocumentUserPersistenceModule;
     UserReadService,
     UserUpdateService,
     UserDeleteService,
+    NotificationPreferenceService,
     UsersService,
   ],
-  exports: [UsersService, infrastructurePersistenceModule],
+  exports: [UsersService, NotificationPreferenceService, infrastructurePersistenceModule],
 })
 export class UsersModule {}

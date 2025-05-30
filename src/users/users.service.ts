@@ -5,10 +5,12 @@ import { FilterUserDto, SortUserDto } from './dto/query-user.dto';
 import { User } from './domain/user';
 import { IPaginationOptions } from '../utils/types/pagination-options';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
 import { UserCreateService } from './services/user-create.service';
 import { UserReadService } from './services/user-read.service';
 import { UserUpdateService } from './services/user-update.service';
 import { UserDeleteService } from './services/user-delete.service';
+import { getDefaultNotificationPreferences } from './infrastructure/persistence/document/entities/user.schema';
 
 @Injectable()
 export class UsersService {
@@ -73,5 +75,32 @@ export class UsersService {
 
   async remove(id: User['id']): Promise<void> {
     await this.userDeleteService.remove(id);
+  }
+
+  async getNotificationPreferences(id: User['id']): Promise<any> {
+    const user = await this.userReadService.findById(id);
+    return user?.notificationPreferences || getDefaultNotificationPreferences();
+  }
+
+  async updateNotificationPreferences(
+    id: User['id'],
+    updatePreferencesDto: UpdateNotificationPreferencesDto,
+  ): Promise<any> {
+    const user = await this.userReadService.findById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const currentPreferences = user.notificationPreferences || getDefaultNotificationPreferences();
+    const updatedPreferences = {
+      ...currentPreferences,
+      ...updatePreferencesDto,
+    };
+
+    await this.userUpdateService.update(id, {
+      notificationPreferences: updatedPreferences,
+    } as UpdateUserDto);
+
+    return updatedPreferences;
   }
 }
