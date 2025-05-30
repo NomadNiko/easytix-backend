@@ -39,6 +39,10 @@ export class CreateUserDto {
   @IsNotEmpty()
   lastName: string | null;
 
+  @ApiPropertyOptional({ example: '+1234567890', type: String })
+  @IsOptional()
+  phoneNumber?: string | null;
+
   @ApiPropertyOptional({ type: () => FileDto })
   @IsOptional()
   photo?: FileDto | null;

@@ -48,6 +48,12 @@ export class UserSchemaClass extends EntityDocumentHelper {
   lastName: string | null;
 
   @Prop({
+    type: String,
+    default: null,
+  })
+  phoneNumber?: string | null;
+
+  @Prop({
     type: FileSchemaClass,
   })
   photo?: FileSchemaClass | null;
