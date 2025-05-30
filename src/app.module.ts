@@ -30,6 +30,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { HistoryItemsModule } from './history-items/history-items.module';
 import { TicketDocumentsModule } from './ticket-documents/ticket-documents.module';
+import { StartupNotificationModule } from './startup-notification/startup-notification.module';
 
 @Module({
   imports: [
@@ -91,6 +92,7 @@ import { TicketDocumentsModule } from './ticket-documents/ticket-documents.modul
     MailModule,
     MailerModule,
     HomeModule,
+    StartupNotificationModule,
   ],
 })
 export class AppModule {}
