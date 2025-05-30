@@ -47,6 +47,14 @@ class EnvironmentVariablesValidator {
   @IsString()
   @IsOptional()
   APP_HEADER_LANGUAGE: string;
+
+  @IsString()
+  @IsOptional()
+  DEFAULT_QUEUE_NAME: string;
+
+  @IsString()
+  @IsOptional()
+  DEFAULT_CATEGORY_NAME: string;
 }
 
 export default registerAs<AppConfig>('app', () => {
@@ -66,5 +74,7 @@ export default registerAs<AppConfig>('app', () => {
     apiPrefix: process.env.API_PREFIX || 'api',
     fallbackLanguage: process.env.APP_FALLBACK_LANGUAGE || 'en',
     headerLanguage: process.env.APP_HEADER_LANGUAGE || 'x-custom-lang',
+    defaultQueueName: process.env.DEFAULT_QUEUE_NAME || 'default',
+    defaultCategoryName: process.env.DEFAULT_CATEGORY_NAME || 'default',
   };
 });

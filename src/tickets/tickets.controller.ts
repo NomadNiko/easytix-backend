@@ -16,7 +16,9 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { TicketsService } from './tickets.service';
+import { PublicTicketService } from './services/public-ticket.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
+import { CreatePublicTicketDto } from './dto/create-public-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { QueryTicketDto } from './dto/query-ticket.dto';
 import { AssignTicketDto } from './dto/assign-ticket.dto';
@@ -29,7 +31,23 @@ import { FileDto } from '../files/dto/file.dto';
   version: '1',
 })
 export class TicketsController {
-  constructor(private readonly ticketsService: TicketsService) {}
+  constructor(
+    private readonly ticketsService: TicketsService,
+    private readonly publicTicketService: PublicTicketService,
+  ) {}
+
+  @Post('public')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOkResponse({
+    type: Ticket,
+    description:
+      'Create a ticket without authentication. Creates a new user account if email does not exist.',
+  })
+  createPublic(
+    @Body() createPublicTicketDto: CreatePublicTicketDto,
+  ): Promise<Ticket> {
+    return this.publicTicketService.createPublicTicket(createPublicTicketDto);
+  }
 
   @Post()
   @ApiBearerAuth()
