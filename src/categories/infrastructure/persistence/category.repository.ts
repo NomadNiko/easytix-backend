@@ -15,4 +15,8 @@ export abstract class CategoryRepository {
     >,
   ): Promise<Category | null>;
   abstract remove(id: Category['id']): Promise<void>;
+  abstract findByNameAndQueue(
+    name: string,
+    queueId: string,
+  ): Promise<NullableType<Category>>;
 }

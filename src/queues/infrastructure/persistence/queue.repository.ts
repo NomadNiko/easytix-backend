@@ -23,4 +23,5 @@ export abstract class QueueRepository {
   ): Promise<Queue[]>;
   abstract addUser(id: Queue['id'], userId: string): Promise<Queue | null>;
   abstract removeUser(id: Queue['id'], userId: string): Promise<Queue | null>;
+  abstract findByName(name: string): Promise<NullableType<Queue>>;
 }

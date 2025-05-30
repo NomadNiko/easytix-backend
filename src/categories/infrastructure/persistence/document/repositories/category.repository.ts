@@ -64,4 +64,12 @@ export class CategoryDocumentRepository implements CategoryRepository {
   async remove(id: Category['id']): Promise<void> {
     await this.categoryModel.deleteOne({ _id: id.toString() });
   }
+
+  async findByNameAndQueue(
+    name: string,
+    queueId: string,
+  ): Promise<NullableType<Category>> {
+    const categoryObject = await this.categoryModel.findOne({ name, queueId });
+    return categoryObject ? CategoryMapper.toDomain(categoryObject) : null;
+  }
 }

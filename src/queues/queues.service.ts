@@ -68,4 +68,8 @@ export class QueuesService {
     }
     return queue;
   }
+
+  async findByName(name: string): Promise<Queue | null> {
+    return this.queueRepository.findByName(name);
+  }
 }

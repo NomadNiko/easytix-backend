@@ -46,4 +46,11 @@ export class CategoriesService {
     await this.findById(id); // Check if exists
     return this.categoryRepository.remove(id);
   }
+
+  async findByNameAndQueue(
+    name: string,
+    queueId: string,
+  ): Promise<Category | null> {
+    return this.categoryRepository.findByNameAndQueue(name, queueId);
+  }
 }

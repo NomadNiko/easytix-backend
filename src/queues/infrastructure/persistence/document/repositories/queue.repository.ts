@@ -108,4 +108,9 @@ export class QueueDocumentRepository implements QueueRepository {
 
     return queueObject ? QueueMapper.toDomain(queueObject) : null;
   }
+
+  async findByName(name: string): Promise<NullableType<Queue>> {
+    const queueObject = await this.queueModel.findOne({ name });
+    return queueObject ? QueueMapper.toDomain(queueObject) : null;
+  }
 }
