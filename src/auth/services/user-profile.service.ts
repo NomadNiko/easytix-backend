@@ -121,7 +121,20 @@ export class UserProfileService {
     delete userDto.email;
     delete userDto.oldPassword;
 
+    const wasPasswordUpdated = !!userDto.password;
+    
     await this.usersService.update(userJwtPayload.id, userDto);
+
+    // Send password change confirmation email if password was updated
+    if (wasPasswordUpdated && currentUser.email) {
+      await this.mailService.passwordChanged({
+        to: currentUser.email,
+        data: {
+          userName: currentUser.firstName || 'User',
+          changedAt: new Date(),
+        },
+      });
+    }
 
     return this.usersService.findById(userJwtPayload.id);
   }

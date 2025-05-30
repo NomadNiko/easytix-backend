@@ -69,13 +69,14 @@ export class PublicTicketService {
 
     let userId: string;
     let isNewUser = false;
+    let randomPassword: string | null = null;
 
     if (existingUser) {
       // Use existing user
       userId = existingUser.id.toString();
     } else {
       // Generate random password
-      const randomPassword = this.generateRandomPassword();
+      randomPassword = this.generateRandomPassword();
 
       // Create new user
       const newUser = await this.usersService.create({
@@ -94,9 +95,6 @@ export class PublicTicketService {
 
       userId = newUser.id.toString();
       isNewUser = true;
-
-      // Send welcome email with password
-      await this.sendWelcomeEmail(dto.email, randomPassword, dto.firstName);
     }
 
     // Create ticket with default queue and category
@@ -109,8 +107,12 @@ export class PublicTicketService {
       documentIds: dto.documentIds || [],
     });
 
-    // If existing user, send ticket creation notification
-    if (!isNewUser) {
+    // Send appropriate email based on whether user is new or existing
+    if (isNewUser && randomPassword) {
+      // Send welcome email with password and ticket info
+      await this.sendWelcomeEmail(dto.email, randomPassword, dto.firstName, ticket.id);
+    } else {
+      // Send ticket creation notification
       await this.sendTicketCreatedEmail(dto.email, dto.firstName, ticket);
     }
 
@@ -130,39 +132,18 @@ export class PublicTicketService {
     email: string,
     password: string,
     firstName: string,
+    ticketId: string,
   ): Promise<void> {
-    const workingDirectory = this.configService.getOrThrow(
-      'app.workingDirectory',
-      {
-        infer: true,
-      },
-    );
-
-    // Create a simple template for welcome email
-    const templatePath = path.join(
-      workingDirectory,
-      'src',
-      'mail',
-      'mail-templates',
-      'activation.hbs',
-    );
-
-    await this.mailerService.sendMail({
+    // Import MailService instead of using MailerService directly
+    const { MailService } = await import('../../mail/mail.service');
+    const mailService = new MailService(this.mailerService, this.configService);
+    
+    await mailService.welcomePublicTicket({
       to: email,
-      subject: 'Welcome to EasyTix - Your Account Has Been Created',
-      text: `Hello ${firstName},\n\nYour account has been created successfully while submitting a support ticket.\n\nYour login credentials:\nEmail: ${email}\nPassword: ${password}\n\nPlease keep this password safe. You can change it after logging in to your account.\n\nYour ticket has been submitted and our team will respond shortly.\n\nBest regards,\nThe EasyTix Team`,
-      templatePath: templatePath,
-      context: {
-        title: 'Welcome to EasyTix',
-        actionTitle: 'Sign In to Your Account',
-        app_name: this.configService.get('app.name', { infer: true }),
-        text1: `Hello ${firstName}!`,
-        text2: `Your account has been created successfully. Your password is: ${password}`,
-        text3:
-          'Please keep this password safe. You can change it after logging in.',
-        url:
-          this.configService.getOrThrow('app.frontendDomain', { infer: true }) +
-          '/sign-in',
+      data: {
+        firstName,
+        password,
+        ticketId,
       },
     });
   }
@@ -172,37 +153,16 @@ export class PublicTicketService {
     firstName: string,
     ticket: Ticket,
   ): Promise<void> {
-    const workingDirectory = this.configService.getOrThrow(
-      'app.workingDirectory',
-      {
-        infer: true,
-      },
-    );
-
-    // Reuse the activation template
-    const templatePath = path.join(
-      workingDirectory,
-      'src',
-      'mail',
-      'mail-templates',
-      'activation.hbs',
-    );
-
-    await this.mailerService.sendMail({
+    // Import MailService instead of using MailerService directly
+    const { MailService } = await import('../../mail/mail.service');
+    const mailService = new MailService(this.mailerService, this.configService);
+    
+    await mailService.ticketCreated({
       to: email,
-      subject: `Ticket Created: ${ticket.title}`,
-      text: `Hello ${firstName},\n\nYour support ticket has been created successfully.\n\nTicket ID: ${ticket.id}\nTitle: ${ticket.title}\nPriority: ${ticket.priority}\n\nOur team will review your ticket and respond shortly.\n\nBest regards,\nThe EasyTix Team`,
-      templatePath: templatePath,
-      context: {
-        title: 'Ticket Created Successfully',
-        actionTitle: 'View Your Ticket',
-        app_name: this.configService.get('app.name', { infer: true }),
-        text1: `Hello ${firstName}!`,
-        text2: `Your support ticket "${ticket.title}" has been created successfully.`,
-        text3: `Ticket ID: ${ticket.id} | Priority: ${ticket.priority}`,
-        url:
-          this.configService.getOrThrow('app.frontendDomain', { infer: true }) +
-          `/tickets/${ticket.id}`,
+      data: {
+        firstName,
+        ticket,
+        isPublic: true,
       },
     });
   }

@@ -16,6 +16,9 @@ import { TicketRepository } from './infrastructure/persistence/ticket.repository
 import { IPaginationOptions } from '../utils/types/pagination-options';
 import { HistoryItemType } from '../history-items/domain/history-item';
 import { NotificationsService } from '../notifications/notifications.service';
+import { MailService } from '../mail/mail.service';
+import { UsersService } from '../users/users.service';
+import { QueuesService } from '../queues/queues.service';
 
 @Injectable()
 export class TicketsService {
@@ -24,6 +27,9 @@ export class TicketsService {
     @Inject(forwardRef(() => HistoryItemsService))
     private readonly historyItemsService: HistoryItemsService,
     private readonly notificationsService: NotificationsService,
+    private readonly mailService: MailService,
+    private readonly usersService: UsersService,
+    private readonly queuesService: QueuesService,
   ) {}
 
   async create(
@@ -59,6 +65,49 @@ export class TicketsService {
       link: `/tickets/${ticket.id}`,
       linkLabel: 'View Ticket',
     });
+
+    // Send email notification for ticket creation
+    const createdByUser = await this.usersService.findById(userId);
+    if (createdByUser) {
+      await this.mailService.ticketCreated({
+        to: createdByUser.email,
+        data: {
+          firstName: createdByUser.firstName || 'User',
+          ticket,
+          isPublic: false,
+        },
+      });
+    }
+
+    // If high priority ticket, send alert to queue users and security
+    if (createTicketDto.priority === TicketPriority.HIGH) {
+      // Send to security@nomadsoft.us
+      await this.mailService.highPriorityTicketAlert({
+        to: 'security@nomadsoft.us',
+        data: {
+          ticket,
+          submittedBy: createdByUser?.email || userId,
+        },
+      });
+
+      // Send to queue users
+      const queue = await this.queuesService.findById(createTicketDto.queueId);
+      if (queue && queue.assignedUsers) {
+        for (const assignedUserId of queue.assignedUsers) {
+          const queueUser = await this.usersService.findById(assignedUserId);
+          if (queueUser) {
+            await this.mailService.highPriorityTicketAlert({
+              to: queueUser.email,
+              data: {
+                ticket,
+                submittedBy: createdByUser?.email || userId,
+                recipientName: queueUser.firstName,
+              },
+            });
+          }
+        }
+      }
+    }
 
     return ticket;
   }
@@ -130,6 +179,48 @@ export class TicketsService {
         type: HistoryItemType.PRIORITY_CHANGED,
         details: `Priority changed to ${updateTicketDto.priority}`,
       });
+
+      // Send email notification for priority change
+      const ticketCreator = await this.usersService.findById(updatedTicket.createdById);
+      if (ticketCreator) {
+        await this.mailService.ticketPriorityChanged({
+          to: ticketCreator.email,
+          data: {
+            ticket: updatedTicket,
+            oldPriority: oldTicket.priority,
+            newPriority: updateTicketDto.priority,
+            userName: ticketCreator.firstName || 'User',
+          },
+        });
+      }
+
+      // If changed to high priority, send alerts
+      if (updateTicketDto.priority === TicketPriority.HIGH) {
+        await this.mailService.highPriorityTicketAlert({
+          to: 'security@nomadsoft.us',
+          data: {
+            ticket: updatedTicket,
+            submittedBy: ticketCreator?.email || updatedTicket.createdById,
+          },
+        });
+
+        const queue = await this.queuesService.findById(updatedTicket.queueId);
+        if (queue && queue.assignedUsers) {
+          for (const assignedUserId of queue.assignedUsers) {
+            const queueUser = await this.usersService.findById(assignedUserId);
+            if (queueUser) {
+              await this.mailService.highPriorityTicketAlert({
+                to: queueUser.email,
+                data: {
+                  ticket: updatedTicket,
+                  submittedBy: ticketCreator?.email || updatedTicket.createdById,
+                  recipientName: queueUser.firstName,
+                },
+              });
+            }
+          }
+        }
+      }
     }
 
     return updatedTicket;
@@ -169,6 +260,21 @@ export class TicketsService {
       linkLabel: 'View Ticket',
     });
 
+    // Send email to ticket creator about assignment
+    const ticketCreator = await this.usersService.findById(updated.createdById);
+    const assignedUser = await this.usersService.findById(assigneeId);
+    
+    if (ticketCreator && assignedUser) {
+      await this.mailService.ticketAssigned({
+        to: ticketCreator.email,
+        data: {
+          agentName: `${assignedUser.firstName} ${assignedUser.lastName}`,
+          ticket: updated,
+          userName: ticketCreator.firstName || 'User',
+        },
+      });
+    }
+
     return updated;
   }
 
@@ -178,6 +284,8 @@ export class TicketsService {
     status: TicketStatus,
   ): Promise<Ticket> {
     const ticket = await this.findById(ticketId);
+    const oldStatus = ticket.status;
+    
     if (ticket.status === status) {
       return ticket; // No change needed
     }
@@ -236,6 +344,51 @@ export class TicketsService {
         link: `/tickets/${ticket.id}`,
         linkLabel: 'View Ticket',
       });
+    }
+
+    // Send email notifications for status changes
+    const ticketCreator = await this.usersService.findById(updated.createdById);
+    if (ticketCreator) {
+      // Map TicketStatus enum to display strings
+      const statusMap = {
+        [TicketStatus.OPENED]: 'Opened',
+        [TicketStatus.CLOSED]: 'Closed',
+      };
+      
+      // Special handling for resolved status (using closed with resolution message)
+      if (oldStatus === TicketStatus.OPENED && status === TicketStatus.CLOSED) {
+        // This could be a resolution - send both resolved and closed emails
+        await this.mailService.ticketResolved({
+          to: ticketCreator.email,
+          data: {
+            ticket: updated,
+            userName: ticketCreator.firstName || 'User',
+            resolutionSummary: 'Your issue has been resolved by our support team.',
+          },
+        });
+      }
+      
+      // Always send status change email
+      await this.mailService.ticketStatusChanged({
+        to: ticketCreator.email,
+        data: {
+          ticket: updated,
+          oldStatus: statusMap[oldStatus],
+          newStatus: statusMap[status],
+          userName: ticketCreator.firstName || 'User',
+        },
+      });
+
+      // Send specific closed email if closing
+      if (status === TicketStatus.CLOSED) {
+        await this.mailService.ticketClosed({
+          to: ticketCreator.email,
+          data: {
+            ticket: updated,
+            userName: ticketCreator.firstName || 'User',
+          },
+        });
+      }
     }
 
     return updated;

@@ -5,10 +5,16 @@ import { UpdateQueueDto } from './dto/update-queue.dto';
 import { Queue } from './domain/queue';
 import { QueueRepository } from './infrastructure/persistence/queue.repository';
 import { IPaginationOptions } from '../utils/types/pagination-options';
+import { MailService } from '../mail/mail.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class QueuesService {
-  constructor(private readonly queueRepository: QueueRepository) {}
+  constructor(
+    private readonly queueRepository: QueueRepository,
+    private readonly mailService: MailService,
+    private readonly usersService: UsersService,
+  ) {}
 
   async create(createQueueDto: CreateQueueDto): Promise<Queue> {
     return this.queueRepository.create({
@@ -58,6 +64,30 @@ export class QueuesService {
     if (!queue) {
       throw new NotFoundException('Queue not found');
     }
+    
+    // Send email notification to the user
+    const user = await this.usersService.findById(userId);
+    if (user) {
+      await this.mailService.queueAssignment({
+        to: user.email,
+        data: {
+          userName: user.firstName || 'User',
+          queueName: queue.name,
+          action: 'added',
+        },
+      });
+      
+      // Also send to support@nomadsoft.us for tracking
+      await this.mailService.queueAssignment({
+        to: 'support@nomadsoft.us',
+        data: {
+          userName: `${user.firstName} ${user.lastName} (${user.email})`,
+          queueName: queue.name,
+          action: 'added',
+        },
+      });
+    }
+    
     return queue;
   }
 
@@ -66,6 +96,30 @@ export class QueuesService {
     if (!queue) {
       throw new NotFoundException('Queue not found');
     }
+    
+    // Send email notification to the user
+    const user = await this.usersService.findById(userId);
+    if (user) {
+      await this.mailService.queueAssignment({
+        to: user.email,
+        data: {
+          userName: user.firstName || 'User',
+          queueName: queue.name,
+          action: 'removed',
+        },
+      });
+      
+      // Also send to support@nomadsoft.us for tracking
+      await this.mailService.queueAssignment({
+        to: 'support@nomadsoft.us',
+        data: {
+          userName: `${user.firstName} ${user.lastName} (${user.email})`,
+          queueName: queue.name,
+          action: 'removed',
+        },
+      });
+    }
+    
     return queue;
   }
 
