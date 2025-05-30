@@ -10,6 +10,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { TicketFileUploaderService } from './infrastructure/uploader/file-uploader.service';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
       storage: memoryStorage(), // Use memory storage for all file uploads
     }),
     NotificationsModule,
+    UsersModule,
   ],
   controllers: [TicketDocumentsController],
   providers: [TicketDocumentsService, TicketFileUploaderService],

@@ -19,6 +19,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { MailService } from '../mail/mail.service';
 import { UsersService } from '../users/users.service';
 import { QueuesService } from '../queues/queues.service';
+import { NotificationPreferenceService } from '../users/services/notification-preference.service';
 
 @Injectable()
 export class TicketsService {
@@ -30,6 +31,7 @@ export class TicketsService {
     private readonly mailService: MailService,
     private readonly usersService: UsersService,
     private readonly queuesService: QueuesService,
+    private readonly notificationPreferenceService: NotificationPreferenceService,
   ) {}
 
   async create(
@@ -58,18 +60,21 @@ export class TicketsService {
     });
 
     // 1) Notification: When a user opens a ticket, send them a notification
-    await this.notificationsService.create({
-      userId: userId,
-      title: 'Ticket Created',
-      message: `You have created a new ticket: "${ticket.title}"`,
-      isRead: false,
-      link: `/tickets/${ticket.id}`,
-      linkLabel: 'View Ticket',
-    });
+    if (await this.notificationPreferenceService.shouldSendNotification(userId, 'ticketCreated')) {
+      await this.notificationsService.create({
+        userId: userId,
+        title: 'Ticket Created',
+        message: `You have created a new ticket: "${ticket.title}"`,
+        isRead: false,
+        link: `/tickets/${ticket.id}`,
+        linkLabel: 'View Ticket',
+      });
+    }
 
     // Send email notification for ticket creation
     const createdByUser = await this.usersService.findById(userId);
-    if (createdByUser && createdByUser.email) {
+    if (createdByUser && createdByUser.email && 
+        await this.notificationPreferenceService.shouldSendEmail(userId, 'ticketCreated')) {
       await this.mailService.ticketCreated({
         to: createdByUser.email,
         data: {
@@ -96,7 +101,8 @@ export class TicketsService {
       if (queue && queue.assignedUserIds) {
         for (const assignedUserId of queue.assignedUserIds) {
           const queueUser = await this.usersService.findById(assignedUserId);
-          if (queueUser && queueUser.email) {
+          if (queueUser && queueUser.email && 
+              await this.notificationPreferenceService.shouldSendEmail(assignedUserId, 'highPriorityAlert')) {
             await this.mailService.highPriorityTicketAlert({
               to: queueUser.email,
               data: {
@@ -201,7 +207,8 @@ export class TicketsService {
       const ticketCreator = await this.usersService.findById(
         updatedTicket.createdById,
       );
-      if (ticketCreator && ticketCreator.email) {
+      if (ticketCreator && ticketCreator.email && 
+          await this.notificationPreferenceService.shouldSendEmail(updatedTicket.createdById, 'priorityChanged')) {
         await this.mailService.ticketPriorityChanged({
           to: ticketCreator.email,
           data: {
@@ -227,7 +234,8 @@ export class TicketsService {
         if (queue && queue.assignedUserIds) {
           for (const assignedUserId of queue.assignedUserIds) {
             const queueUser = await this.usersService.findById(assignedUserId);
-            if (queueUser && queueUser.email) {
+            if (queueUser && queueUser.email && 
+                await this.notificationPreferenceService.shouldSendEmail(assignedUserId, 'highPriorityAlert')) {
               await this.mailService.highPriorityTicketAlert({
                 to: queueUser.email,
                 data: {
@@ -271,20 +279,23 @@ export class TicketsService {
     });
 
     // 2) Notification: When a user is assigned to a ticket, notify them
-    await this.notificationsService.create({
-      userId: assigneeId,
-      title: 'Ticket Assigned',
-      message: `You have been assigned to ticket: "${ticket.title}"`,
-      isRead: false,
-      link: `/tickets/${ticket.id}`,
-      linkLabel: 'View Ticket',
-    });
+    if (await this.notificationPreferenceService.shouldSendNotification(assigneeId, 'ticketAssigned')) {
+      await this.notificationsService.create({
+        userId: assigneeId,
+        title: 'Ticket Assigned',
+        message: `You have been assigned to ticket: "${ticket.title}"`,
+        isRead: false,
+        link: `/tickets/${ticket.id}`,
+        linkLabel: 'View Ticket',
+      });
+    }
 
     // Send email to ticket creator about assignment
     const ticketCreator = await this.usersService.findById(updated.createdById);
     const assignedUser = await this.usersService.findById(assigneeId);
 
-    if (ticketCreator && assignedUser && ticketCreator.email) {
+    if (ticketCreator && assignedUser && ticketCreator.email && 
+        await this.notificationPreferenceService.shouldSendEmail(updated.createdById, 'ticketAssigned')) {
       await this.mailService.ticketAssigned({
         to: ticketCreator.email,
         data: {
@@ -346,7 +357,9 @@ export class TicketsService {
     });
 
     // 3) Notification: When a ticket a user opens is closed or reopened, notify them
-    if (ticket.createdById && ticket.createdById !== userId) {
+    const eventType = status === TicketStatus.CLOSED ? 'ticketClosed' : 'ticketReopened';
+    if (ticket.createdById && ticket.createdById !== userId && 
+        await this.notificationPreferenceService.shouldSendNotification(ticket.createdById, eventType)) {
       await this.notificationsService.create({
         userId: ticket.createdById,
         title: `Ticket ${
@@ -365,7 +378,8 @@ export class TicketsService {
     if (
       ticket.assignedToId &&
       ticket.assignedToId !== userId &&
-      ticket.assignedToId !== ticket.createdById
+      ticket.assignedToId !== ticket.createdById &&
+      await this.notificationPreferenceService.shouldSendNotification(ticket.assignedToId, eventType)
     ) {
       await this.notificationsService.create({
         userId: ticket.assignedToId,
@@ -391,7 +405,8 @@ export class TicketsService {
       };
 
       // Special handling for resolved status (using closed with resolution message)
-      if (oldStatus === TicketStatus.OPENED && status === TicketStatus.CLOSED) {
+      if (oldStatus === TicketStatus.OPENED && status === TicketStatus.CLOSED && 
+          await this.notificationPreferenceService.shouldSendEmail(updated.createdById, 'ticketResolved')) {
         // This could be a resolution - send both resolved and closed emails
         await this.mailService.ticketResolved({
           to: ticketCreator.email,
@@ -405,18 +420,21 @@ export class TicketsService {
       }
 
       // Always send status change email
-      await this.mailService.ticketStatusChanged({
-        to: ticketCreator.email,
-        data: {
-          ticket: updated,
-          oldStatus: statusMap[oldStatus],
-          newStatus: statusMap[status],
-          userName: ticketCreator.firstName || 'User',
-        },
-      });
+      if (await this.notificationPreferenceService.shouldSendEmail(updated.createdById, 'ticketStatusChanged')) {
+        await this.mailService.ticketStatusChanged({
+          to: ticketCreator.email,
+          data: {
+            ticket: updated,
+            oldStatus: statusMap[oldStatus],
+            newStatus: statusMap[status],
+            userName: ticketCreator.firstName || 'User',
+          },
+        });
+      }
 
       // Send specific closed email if closing
-      if (status === TicketStatus.CLOSED) {
+      if (status === TicketStatus.CLOSED && 
+          await this.notificationPreferenceService.shouldSendEmail(updated.createdById, 'ticketClosed')) {
         await this.mailService.ticketClosed({
           to: ticketCreator.email,
           data: {
@@ -493,7 +511,8 @@ export class TicketsService {
     }
 
     // Notify assignee if the ticket is being deleted and they're not the one deleting it
-    if (ticket.assignedToId && ticket.assignedToId !== user.id) {
+    if (ticket.assignedToId && ticket.assignedToId !== user.id && 
+        await this.notificationPreferenceService.shouldSendNotification(ticket.assignedToId, 'ticketDeleted')) {
       await this.notificationsService.create({
         userId: ticket.assignedToId,
         title: 'Ticket Deleted',
@@ -503,7 +522,8 @@ export class TicketsService {
     }
 
     // Notify creator if the ticket is being deleted by admin and not by themselves
-    if (ticket.createdById !== user.id) {
+    if (ticket.createdById !== user.id && 
+        await this.notificationPreferenceService.shouldSendNotification(ticket.createdById, 'ticketDeleted')) {
       await this.notificationsService.create({
         userId: ticket.createdById,
         title: 'Your Ticket Deleted',

@@ -19,6 +19,7 @@ import { AllConfigType } from '../config/config.type';
 import { FileDriver } from '../files/config/file-config.type';
 import { TicketFileUploaderService } from './infrastructure/uploader/file-uploader.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationPreferenceService } from '../users/services/notification-preference.service';
 
 @Injectable()
 export class TicketDocumentsService {
@@ -30,6 +31,7 @@ export class TicketDocumentsService {
     private readonly configService: ConfigService<AllConfigType>,
     private readonly fileUploaderService: TicketFileUploaderService,
     private readonly notificationsService: NotificationsService,
+    private readonly notificationPreferenceService: NotificationPreferenceService,
   ) {
     const fileDriver = this.configService.get('file.driver', { infer: true });
     if (
@@ -99,7 +101,8 @@ export class TicketDocumentsService {
     });
 
     // 1) Notification: When anyone uploads a document to a ticket, notify the person that opened the ticket
-    if (ticket.createdById && ticket.createdById !== userJwtPayload.id) {
+    if (ticket.createdById && ticket.createdById !== userJwtPayload.id && 
+        await this.notificationPreferenceService.shouldSendNotification(ticket.createdById, 'documentAdded')) {
       await this.notificationsService.create({
         userId: ticket.createdById,
         title: 'Document Added to Your Ticket',
@@ -114,7 +117,8 @@ export class TicketDocumentsService {
     if (
       ticket.assignedToId &&
       ticket.assignedToId !== userJwtPayload.id &&
-      ticket.assignedToId !== ticket.createdById
+      ticket.assignedToId !== ticket.createdById &&
+      await this.notificationPreferenceService.shouldSendNotification(ticket.assignedToId, 'documentAdded')
     ) {
       await this.notificationsService.create({
         userId: ticket.assignedToId,
@@ -225,7 +229,8 @@ export class TicketDocumentsService {
 
     // Notification: When a document is removed, notify relevant users
     // Notify ticket creator if they didn't delete it
-    if (ticket.createdById && ticket.createdById !== userJwtPayload.id) {
+    if (ticket.createdById && ticket.createdById !== userJwtPayload.id && 
+        await this.notificationPreferenceService.shouldSendNotification(ticket.createdById, 'documentRemoved')) {
       await this.notificationsService.create({
         userId: ticket.createdById,
         title: 'Document Removed from Your Ticket',
@@ -240,7 +245,8 @@ export class TicketDocumentsService {
     if (
       ticket.assignedToId &&
       ticket.assignedToId !== userJwtPayload.id &&
-      ticket.assignedToId !== ticket.createdById
+      ticket.assignedToId !== ticket.createdById &&
+      await this.notificationPreferenceService.shouldSendNotification(ticket.assignedToId, 'documentRemoved')
     ) {
       await this.notificationsService.create({
         userId: ticket.assignedToId,

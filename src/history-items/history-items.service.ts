@@ -12,6 +12,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { TicketsService } from '../tickets/tickets.service';
 import { MailService } from '../mail/mail.service';
 import { UsersService } from '../users/users.service';
+import { NotificationPreferenceService } from '../users/services/notification-preference.service';
 
 @Injectable()
 export class HistoryItemsService {
@@ -22,6 +23,7 @@ export class HistoryItemsService {
     private readonly ticketsService: TicketsService,
     private readonly mailService: MailService,
     private readonly usersService: UsersService,
+    private readonly notificationPreferenceService: NotificationPreferenceService,
   ) {}
 
   async create(
@@ -56,20 +58,23 @@ export class HistoryItemsService {
             ticket.createdById &&
             ticket.createdById !== createHistoryItemDto.userId
           ) {
-            await this.notificationsService.create({
-              userId: ticket.createdById,
-              title: 'New Comment on Your Ticket',
-              message: `A new comment has been added to your ticket: "${ticket.title}"`,
-              isRead: false,
-              link: `/tickets/${ticket.id}`,
-              linkLabel: 'View Comment',
-            });
+            if (await this.notificationPreferenceService.shouldSendNotification(ticket.createdById, 'newComment')) {
+              await this.notificationsService.create({
+                userId: ticket.createdById,
+                title: 'New Comment on Your Ticket',
+                message: `A new comment has been added to your ticket: "${ticket.title}"`,
+                isRead: false,
+                link: `/tickets/${ticket.id}`,
+                linkLabel: 'View Comment',
+              });
+            }
 
             // Send email notification
             const ticketCreator = await this.usersService.findById(
               ticket.createdById,
             );
-            if (ticketCreator && ticketCreator.email) {
+            if (ticketCreator && ticketCreator.email && 
+                await this.notificationPreferenceService.shouldSendEmail(ticket.createdById, 'newComment')) {
               await this.mailService.newComment({
                 to: ticketCreator.email,
                 data: {
@@ -88,7 +93,8 @@ export class HistoryItemsService {
           if (
             ticket.assignedToId &&
             ticket.assignedToId !== createHistoryItemDto.userId &&
-            ticket.assignedToId !== ticket.createdById
+            ticket.assignedToId !== ticket.createdById &&
+            await this.notificationPreferenceService.shouldSendNotification(ticket.assignedToId, 'newComment')
           ) {
             // Avoid duplicate notifications
             await this.notificationsService.create({
@@ -106,7 +112,8 @@ export class HistoryItemsService {
           // Notify about priority changes
           if (
             ticket.createdById &&
-            ticket.createdById !== createHistoryItemDto.userId
+            ticket.createdById !== createHistoryItemDto.userId &&
+            await this.notificationPreferenceService.shouldSendNotification(ticket.createdById, 'priorityChanged')
           ) {
             await this.notificationsService.create({
               userId: ticket.createdById,
@@ -121,7 +128,8 @@ export class HistoryItemsService {
           if (
             ticket.assignedToId &&
             ticket.assignedToId !== createHistoryItemDto.userId &&
-            ticket.assignedToId !== ticket.createdById
+            ticket.assignedToId !== ticket.createdById &&
+            await this.notificationPreferenceService.shouldSendNotification(ticket.assignedToId, 'priorityChanged')
           ) {
             await this.notificationsService.create({
               userId: ticket.assignedToId,
@@ -138,7 +146,8 @@ export class HistoryItemsService {
           // Notify about category changes
           if (
             ticket.createdById &&
-            ticket.createdById !== createHistoryItemDto.userId
+            ticket.createdById !== createHistoryItemDto.userId &&
+            await this.notificationPreferenceService.shouldSendNotification(ticket.createdById, 'categoryChanged')
           ) {
             await this.notificationsService.create({
               userId: ticket.createdById,
@@ -153,7 +162,8 @@ export class HistoryItemsService {
           if (
             ticket.assignedToId &&
             ticket.assignedToId !== createHistoryItemDto.userId &&
-            ticket.assignedToId !== ticket.createdById
+            ticket.assignedToId !== ticket.createdById &&
+            await this.notificationPreferenceService.shouldSendNotification(ticket.assignedToId, 'categoryChanged')
           ) {
             await this.notificationsService.create({
               userId: ticket.assignedToId,
