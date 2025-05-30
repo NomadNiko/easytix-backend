@@ -65,7 +65,7 @@ export class HistoryItemsService {
             
             // Send email notification
             const ticketCreator = await this.usersService.findById(ticket.createdById);
-            if (ticketCreator) {
+            if (ticketCreator && ticketCreator.email) {
               await this.mailService.newComment({
                 to: ticketCreator.email,
                 data: {

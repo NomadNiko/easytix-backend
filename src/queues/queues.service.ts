@@ -67,7 +67,7 @@ export class QueuesService {
     
     // Send email notification to the user
     const user = await this.usersService.findById(userId);
-    if (user) {
+    if (user && user.email) {
       await this.mailService.queueAssignment({
         to: user.email,
         data: {
@@ -99,7 +99,7 @@ export class QueuesService {
     
     // Send email notification to the user
     const user = await this.usersService.findById(userId);
-    if (user) {
+    if (user && user.email) {
       await this.mailService.queueAssignment({
         to: user.email,
         data: {

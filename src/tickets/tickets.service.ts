@@ -68,7 +68,7 @@ export class TicketsService {
 
     // Send email notification for ticket creation
     const createdByUser = await this.usersService.findById(userId);
-    if (createdByUser) {
+    if (createdByUser && createdByUser.email) {
       await this.mailService.ticketCreated({
         to: createdByUser.email,
         data: {
@@ -92,16 +92,16 @@ export class TicketsService {
 
       // Send to queue users
       const queue = await this.queuesService.findById(createTicketDto.queueId);
-      if (queue && queue.assignedUsers) {
-        for (const assignedUserId of queue.assignedUsers) {
+      if (queue && queue.assignedUserIds) {
+        for (const assignedUserId of queue.assignedUserIds) {
           const queueUser = await this.usersService.findById(assignedUserId);
-          if (queueUser) {
+          if (queueUser && queueUser.email) {
             await this.mailService.highPriorityTicketAlert({
               to: queueUser.email,
               data: {
                 ticket,
                 submittedBy: createdByUser?.email || userId,
-                recipientName: queueUser.firstName,
+                recipientName: queueUser.firstName || undefined,
               },
             });
           }
@@ -182,7 +182,7 @@ export class TicketsService {
 
       // Send email notification for priority change
       const ticketCreator = await this.usersService.findById(updatedTicket.createdById);
-      if (ticketCreator) {
+      if (ticketCreator && ticketCreator.email) {
         await this.mailService.ticketPriorityChanged({
           to: ticketCreator.email,
           data: {
@@ -205,16 +205,16 @@ export class TicketsService {
         });
 
         const queue = await this.queuesService.findById(updatedTicket.queueId);
-        if (queue && queue.assignedUsers) {
-          for (const assignedUserId of queue.assignedUsers) {
+        if (queue && queue.assignedUserIds) {
+          for (const assignedUserId of queue.assignedUserIds) {
             const queueUser = await this.usersService.findById(assignedUserId);
-            if (queueUser) {
+            if (queueUser && queueUser.email) {
               await this.mailService.highPriorityTicketAlert({
                 to: queueUser.email,
                 data: {
                   ticket: updatedTicket,
                   submittedBy: ticketCreator?.email || updatedTicket.createdById,
-                  recipientName: queueUser.firstName,
+                  recipientName: queueUser.firstName || undefined,
                 },
               });
             }
@@ -264,7 +264,7 @@ export class TicketsService {
     const ticketCreator = await this.usersService.findById(updated.createdById);
     const assignedUser = await this.usersService.findById(assigneeId);
     
-    if (ticketCreator && assignedUser) {
+    if (ticketCreator && assignedUser && ticketCreator.email) {
       await this.mailService.ticketAssigned({
         to: ticketCreator.email,
         data: {
@@ -348,7 +348,7 @@ export class TicketsService {
 
     // Send email notifications for status changes
     const ticketCreator = await this.usersService.findById(updated.createdById);
-    if (ticketCreator) {
+    if (ticketCreator && ticketCreator.email) {
       // Map TicketStatus enum to display strings
       const statusMap = {
         [TicketStatus.OPENED]: 'Opened',
