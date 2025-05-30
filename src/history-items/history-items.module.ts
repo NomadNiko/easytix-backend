@@ -11,6 +11,8 @@ import { HistoryItemRepository } from './infrastructure/persistence/history-item
 import { HistoryItemDocumentRepository } from './infrastructure/persistence/document/repositories/history-item.repository';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { TicketsModule } from '../tickets/tickets.module';
+import { MailModule } from '../mail/mail.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { TicketsModule } from '../tickets/tickets.module';
     ]),
     NotificationsModule,
     forwardRef(() => TicketsModule),
+    MailModule,
+    UsersModule,
   ],
   controllers: [HistoryItemsController],
   providers: [
