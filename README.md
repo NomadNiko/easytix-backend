@@ -1,73 +1,418 @@
-# NestJS REST API boilerplate 🇺🇦
+# EasyTix Backend - Advanced Ticket Management API
 
-[![image](https://github.com/brocoders/nestjs-boilerplate/assets/72293912/197da43e-02f4-4895-8d3e-b7a42a591c26)](https://github.com/new?template_name=nestjs-boilerplate&template_owner=brocoders)
+A robust, scalable NestJS backend service for the EasyTix ticket management system, providing comprehensive REST APIs for ticket handling, user management, notifications, and administrative features.
 
-![github action status](https://github.com/brocoders/nestjs-boilerplate/actions/workflows/docker-e2e.yml/badge.svg)
-[![renovate](https://img.shields.io/badge/renovate-enabled-%231A1F6C?logo=renovatebot)](https://app.renovatebot.com/dashboard)
-[![Static Badge](https://img.shields.io/badge/supported_by-brocoders-d91965?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB3aWR0aD0iMTMwIiBoZWlnaHQ9IjE4NyIgdmlld0JveD0iMCAwIDEzMCAxODciIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI%2BCjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMF83NzExXzQ4OTEpIj4KPHBhdGggZD0iTTc1Ljk5NjcgNDUuNzUwNkM2NS4xMDg5IDQ2Ljg2MSA1Ny45MjMgNTguNDA5NyA2Mi4yNzgxIDY4Ljg0OEwxMDguNDQyIDE4N0w3My42MDEzIDE1NS4wMTlIMzQuODQwOUMyMC42ODY4IDE1NS4wMTkgOS4zNjM0OSAxNDMuNDcgOS4zNjM0OSAxMjkuMDM0Vjk0LjYxMDVDOS4zNjM0OSA5Mi4xNjc1IDguNDkyNDYgODkuNzI0NSA2Ljc1MDQyIDg3Ljk0NzdMMCA4MS4wNjNMNi43NTA0MiA3NC4xNzgxQzguNDkyNDYgNzIuNDAxNCA5LjM2MzQ5IDY5Ljk1ODQgOS4zNjM0OSA2Ny41MTU0VjMxLjA5MjZDOS4zNjM0OSAxMy43Njk2IDIzLjA4MjEgMCAzOS44NDkyIDBINTguMTQwN0w3NS45OTY3IDQ1Ljc1MDZaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMTI1LjY0NiAxMTIuMzc4Vjk0LjgzMjdDMTI1LjY0NiA5My43MjIyIDEyNi4wODEgOTIuNjExOCAxMjYuOTUyIDkxLjcyMzRMMTMwLjAwMSA4OC4zOTIxTDEyNi45NTIgODUuMDYwN0MxMjYuMDgxIDg0LjE3MjQgMTI1LjY0NiA4My4wNjE5IDEyNS42NDYgODEuOTUxNFY2OS43MzY1QzEyNS42NDYgNTYuNDExMSAxMTQuOTc2IDQ1Ljc1MDcgMTAyLjEyOCA0NS43NTA3SDc1Ljk5NzNMMTA1LjYxMiAxMzAuODExQzEwNS42MTIgMTMwLjgxMSAxMTAuNjIgMTMwLjgxMSAxMTAuODM4IDEzMC44MTFDMTE5LjExMyAxMjkuMDM1IDEyNS42NDYgMTIxLjQ4NCAxMjUuNjQ2IDExMi4zNzhaIiBmaWxsPSJ3aGl0ZSIvPgo8L2c%2BCjxkZWZzPgo8Y2xpcFBhdGggaWQ9ImNsaXAwXzc3MTFfNDg5MSI%2BCjxyZWN0IHdpZHRoPSIxMzAiIGhlaWdodD0iMTg3IiBmaWxsPSJ3aGl0ZSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM%2BCjwvc3ZnPgo%3D&logoColor=d91965)](https://brocoders.com/)
-[![Discord Badge](https://img.shields.io/badge/discord-NodeJS_boilerplate-d91965?style=flat&labelColor=5866f2&logo=discord&logoColor=white&link=https://discord.com/channels/520622812742811698/1197293125434093701)](https://discord.com/channels/520622812742811698/1197293125434093701)
+## 🌟 Live Demo
 
-<br />
-<p align="center"><a href="https://discord.com/channels/520622812742811698/1197293125434093701"><img src="https://github.com/brocoders/nestjs-boilerplate/assets/72293912/c9d5fbf0-b56d-46b5-bb30-f96f44764bae" width="300"/></a></p>
-<br />
+- **API Documentation**: https://etdevserver.nomadsoft.us/docs
+- **Frontend Application**: https://etdev.nomadsoft.us
+- **Test Credentials**: admin@example.com / secret
 
-## Description <!-- omit in toc -->
+## 🚀 Key Features
 
-NestJS REST API boilerplate for a typical project
+### 🎫 Ticket Management System
+- **Public Ticket Creation** - Anonymous ticket submission with user creation
+- **Internal Ticket System** - Authenticated ticket management
+- **Priority & Status Tracking** - High/Medium/Low priority with lifecycle management
+- **Queue-based Organization** - Department/category-based ticket routing
+- **Document Attachments** - File upload and management for tickets
+- **History Tracking** - Complete audit trail for all ticket activities
+- **Advanced Filtering** - Complex querying and search capabilities
 
-[Full documentation here](/docs/readme.md)
+### 👥 User & Role Management
+- **Role-based Access Control** - Admin and User roles with granular permissions
+- **User CRUD Operations** - Complete user lifecycle management
+- **Profile Management** - User information and avatar handling
+- **Queue Assignments** - User-to-queue relationship management
+- **Notification Preferences** - Granular user notification settings
 
-Demo: <https://nestjs-boilerplate-test.herokuapp.com/docs>
+### 🔔 Advanced Notification System
+- **Granular Preferences** - User-controlled notification settings
+- **Smart Notifications** - Respects user preferences before sending
+- **Email Integration** - Automated email notifications with templates
+- **In-app Notifications** - Real-time notification system
+- **Admin Broadcasting** - System-wide notification capabilities
 
-A fully compatible frontend boilerplate: <https://github.com/brocoders/extensive-react-boilerplate>
+### 🏗️ Queue & Category Management
+- **Dynamic Queue Creation** - Flexible departmental organization
+- **Category System** - Hierarchical ticket categorization
+- **User Assignment** - Queue-specific user management
+- **Analytics Ready** - Performance tracking capabilities
 
-Belongs to the [bc boilerplates](https://bcboilerplates.com/) ecosystem
+### 🔐 Authentication & Security
+- **JWT Authentication** - Secure token-based authentication
+- **Email Verification** - Account activation workflow
+- **Password Reset** - Secure password recovery
+- **Social OAuth** - Google, Facebook, Apple integration
+- **Rate Limiting** - API protection and abuse prevention
 
-<https://github.com/user-attachments/assets/a66f114a-c714-4036-8eeb-20cbf04ae985>
+### 📁 File Management
+- **Multiple Storage Drivers** - Local filesystem and S3 support
+- **File Upload Security** - Type validation and size limits
+- **Document Associations** - Link files to tickets and users
+- **Presigned URLs** - Secure file access patterns
 
-## Table of Contents <!-- omit in toc -->
+## 🛠️ Technology Stack
 
-- [Features](#features)
-- [Contributors](#contributors)
-- [Support](#support)
+- **Framework**: NestJS (Node.js)
+- **Database**: MongoDB with Mongoose ODM
+- **Authentication**: JWT with Passport strategies
+- **Email**: Nodemailer with Handlebars templates
+- **File Storage**: Local filesystem / Amazon S3
+- **Validation**: Class-validator with DTOs
+- **API Documentation**: Swagger/OpenAPI
+- **Testing**: Jest (unit) + Supertest (E2E)
+- **Configuration**: Environment-based config service
+- **Internationalization**: nestjs-i18n
 
-## Features
+## 📋 API Endpoints
 
-- [x] Database. Support [TypeORM](https://www.npmjs.com/package/typeorm) and [Mongoose](https://www.npmjs.com/package/mongoose).
-- [x] Seeding.
-- [x] Config Service ([@nestjs/config](https://www.npmjs.com/package/@nestjs/config)).
-- [x] Mailing ([nodemailer](https://www.npmjs.com/package/nodemailer)).
-- [x] Sign in and sign up via email.
-- [x] Social sign in (Apple, Facebook, Google).
-- [x] Admin and User roles.
-- [x] Internationalization/Translations (I18N) ([nestjs-i18n](https://www.npmjs.com/package/nestjs-i18n)).
-- [x] File uploads. Support local and Amazon S3 drivers.
-- [x] Swagger.
-- [x] E2E and units tests.
-- [x] Docker.
-- [x] CI (Github Actions).
+### Authentication
+```
+POST   /auth/email/login              # User login
+POST   /auth/email/register           # User registration
+POST   /auth/email/confirm            # Email confirmation
+POST   /auth/forgot/password          # Password reset request
+POST   /auth/reset/password           # Password reset completion
+POST   /auth/refresh                  # Token refresh
+```
 
-## Contributors
+### Tickets
+```
+GET    /tickets                       # List tickets (filtered/paginated)
+POST   /tickets                       # Create new ticket
+GET    /tickets/:id                   # Get specific ticket
+PATCH  /tickets/:id                   # Update ticket
+DELETE /tickets/:id                   # Delete ticket
+POST   /tickets/public                # Public ticket creation (no auth)
+PATCH  /tickets/:id/assign            # Assign ticket to user
+PATCH  /tickets/:id/status            # Update ticket status
+```
 
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Shchepotin"><img src="https://avatars.githubusercontent.com/u/6001723?v=4?s=100" width="100px;" alt="Vladyslav Shchepotin"/><br /><sub><b>Vladyslav Shchepotin</b></sub></a><br /><a href="#maintenance-Shchepotin" title="Maintenance">🚧</a> <a href="#doc-Shchepotin" title="Documentation">📖</a> <a href="#code-Shchepotin" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/SergeiLomako"><img src="https://avatars.githubusercontent.com/u/31205374?v=4?s=100" width="100px;" alt="SergeiLomako"/><br /><sub><b>SergeiLomako</b></sub></a><br /><a href="#code-SergeiLomako" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ElenVlass"><img src="https://avatars.githubusercontent.com/u/72293912?v=4?s=100" width="100px;" alt="Elena Vlasenko"/><br /><sub><b>Elena Vlasenko</b></sub></a><br /><a href="#doc-ElenVlass" title="Documentation">📖</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="http://brocoders.com"><img src="https://avatars.githubusercontent.com/u/226194?v=4?s=100" width="100px;" alt="Rodion"/><br /><sub><b>Rodion</b></sub></a><br /><a href="#business-sars" title="Business development">💼</a></td>
-    </tr>
-  </tbody>
-</table>
+### Users
+```
+GET    /users                         # List users (admin only)
+POST   /users                         # Create user (admin only)
+GET    /users/:id                     # Get user details
+PATCH  /users/:id                     # Update user
+DELETE /users/:id                     # Delete user (admin only)
+GET    /users/me                      # Get current user profile
+PATCH  /users/me                      # Update current user profile
+PATCH  /users/:id/notification-preferences  # Update notification settings
+```
 
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
+### Queues
+```
+GET    /queues                        # List all queues
+POST   /queues                        # Create new queue (admin only)
+GET    /queues/:id                    # Get queue details
+PATCH  /queues/:id                    # Update queue (admin only)
+DELETE /queues/:id                    # Delete queue (admin only)
+POST   /queues/:id/users              # Assign user to queue
+DELETE /queues/:id/users/:userId      # Remove user from queue
+```
 
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+### Categories
+```
+GET    /categories                    # List categories
+POST   /categories                    # Create category (admin only)
+GET    /categories/:id                # Get category details
+PATCH  /categories/:id                # Update category (admin only)
+DELETE /categories/:id                # Delete category (admin only)
+```
 
-## Support
+### Notifications
+```
+GET    /notifications                 # Get user notifications
+POST   /notifications                 # Create notification (admin only)
+PATCH  /notifications/:id             # Mark as read/unread
+DELETE /notifications/:id             # Delete notification
+POST   /notifications/broadcast       # Send broadcast (admin only)
+```
 
-If you seek consulting, support, or wish to collaborate, please contact us via [boilerplates@brocoders.com](mailto:boilerplates@brocoders.com). For any inquiries regarding boilerplates, feel free to ask on [GitHub Discussions](https://github.com/brocoders/nestjs-boilerplate/discussions) or [Discord](https://discord.com/channels/520622812742811698/1197293125434093701).
+### History Items
+```
+GET    /history-items                 # Get ticket history
+POST   /history-items                 # Add comment/history entry
+GET    /history-items/:id             # Get specific history item
+PATCH  /history-items/:id             # Update history item
+DELETE /history-items/:id             # Delete history item
+```
+
+### Files
+```
+POST   /files/upload                  # Upload file
+GET    /files/:id                     # Get file metadata
+DELETE /files/:id                     # Delete file
+```
+
+## 🏃‍♂️ Quick Start
+
+### Prerequisites
+- Node.js 18+
+- MongoDB 4.4+
+- SMTP service for emails
+
+### Installation
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/NomadNiko/easytix-backend.git
+cd easytix-backend
+```
+
+2. **Install dependencies**
+```bash
+npm install
+```
+
+3. **Configure environment**
+```bash
+cp env-example-document .env
+# Edit .env with your configuration
+```
+
+4. **Start the application**
+```bash
+# Development
+npm run start:dev
+
+# Production
+npm run build
+npm run start:prod
+```
+
+## ⚙️ Configuration
+
+### Environment Variables
+
+```env
+# Application
+NODE_ENV=development
+APP_PORT=3001
+APP_NAME=EasyTix
+API_PREFIX=api/v1
+FRONTEND_DOMAIN=http://localhost:3000
+BACKEND_DOMAIN=http://localhost:3001
+
+# Database
+DATABASE_URL=mongodb://localhost:27017/easytix
+DATABASE_NAME=easytix
+
+# JWT Configuration
+AUTH_JWT_SECRET=your-jwt-secret
+AUTH_JWT_TOKEN_EXPIRES_IN=15m
+AUTH_REFRESH_SECRET=your-refresh-secret
+AUTH_REFRESH_TOKEN_EXPIRES_IN=3650d
+
+# Email Configuration
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USER=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+MAIL_DEFAULT_EMAIL=noreply@yourdomain.com
+MAIL_DEFAULT_NAME=EasyTix
+
+# File Upload
+FILE_DRIVER=local
+ACCESS_KEY_ID=your-s3-access-key
+SECRET_ACCESS_KEY=your-s3-secret-key
+AWS_S3_REGION=us-east-1
+AWS_DEFAULT_S3_BUCKET=your-bucket-name
+
+# Social Authentication
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+FACEBOOK_APP_ID=your-facebook-app-id
+FACEBOOK_APP_SECRET=your-facebook-app-secret
+APPLE_APP_AUDIENCE=your-apple-audience
+```
+
+## 🧪 Testing
+
+### Unit Tests
+```bash
+# Run unit tests
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Generate coverage report
+npm run test:cov
+```
+
+### E2E Tests
+```bash
+# Run E2E tests
+npm run test:e2e
+
+# Run specific test file
+npm run test:e2e -- auth.e2e-spec.ts
+```
+
+### Database Seeding
+```bash
+# Seed the database with initial data
+npm run seed:run
+
+# Create a new seed file
+npm run seed:create
+```
+
+## 📁 Project Structure
+
+```
+src/
+├── app.module.ts                 # Main application module
+├── main.ts                       # Application entry point
+├── auth/                         # Authentication module
+│   ├── auth.controller.ts
+│   ├── auth.service.ts
+│   ├── auth.module.ts
+│   ├── dto/                      # Data Transfer Objects
+│   ├── services/                 # Auth-related services
+│   └── strategies/               # Passport strategies
+├── users/                        # User management module
+│   ├── users.controller.ts
+│   ├── users.service.ts
+│   ├── users.module.ts
+│   ├── domain/                   # Domain entities
+│   ├── dto/                      # Data Transfer Objects
+│   ├── infrastructure/           # Data persistence layer
+│   └── services/                 # User-related services
+├── tickets/                      # Ticket management module
+│   ├── tickets.controller.ts
+│   ├── tickets.service.ts
+│   ├── tickets.module.ts
+│   ├── domain/
+│   ├── dto/
+│   ├── infrastructure/
+│   └── services/
+├── queues/                       # Queue management module
+├── categories/                   # Category management module
+├── notifications/                # Notification system module
+├── history-items/                # Ticket history module
+├── files/                        # File management module
+├── database/                     # Database configuration
+│   ├── mongoose-config.service.ts
+│   └── seeds/                    # Database seeding
+├── utils/                        # Utility functions
+├── config/                       # Configuration modules
+└── mail/                         # Email service module
+```
+
+## 🔒 Security Features
+
+### API Security
+- **JWT Authentication** with refresh tokens
+- **Rate limiting** to prevent abuse
+- **Input validation** with class-validator
+- **CORS configuration** for cross-origin requests
+- **Helmet** for security headers
+- **File upload validation** with type and size limits
+
+### Database Security
+- **Mongoose schema validation**
+- **Sanitized queries** to prevent injection
+- **Connection encryption** support
+- **Index optimization** for performance
+
+## 🚀 Deployment
+
+### Docker Deployment
+```bash
+# Build the image
+docker build -t easytix-backend .
+
+# Run with docker-compose
+docker-compose up -d
+```
+
+### PM2 Production Deployment
+```bash
+# Build the application
+npm run build
+
+# Start with PM2
+pm2 start dist/main.js --name "easytix-backend"
+
+# Start with ecosystem file
+pm2 start ecosystem.config.js
+```
+
+### Environment-specific Builds
+```bash
+# Development
+npm run start:dev
+
+# Production
+npm run build
+npm run start:prod
+
+# Debug mode
+npm run start:debug
+```
+
+## 📊 Monitoring & Health Checks
+
+### Health Check Endpoints
+```
+GET /health          # Application health status
+GET /health/database # Database connectivity check
+GET /health/memory   # Memory usage information
+```
+
+### Logging
+- **Structured logging** with Winston
+- **Request/Response logging** middleware
+- **Error tracking** with stack traces
+- **Performance monitoring** capabilities
+
+## 🔧 Development
+
+### Code Quality
+- **ESLint** for code linting
+- **Prettier** for code formatting
+- **Husky** for pre-commit hooks
+- **TypeScript** for type safety
+- **Jest** for testing
+
+### API Documentation
+- **Swagger/OpenAPI** integration
+- **Auto-generated documentation** from decorators
+- **Interactive API explorer**
+- **Schema validation** documentation
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and add tests
+4. Run the test suite: `npm run test:e2e`
+5. Commit your changes: `git commit -m 'Add amazing feature'`
+6. Push to the branch: `git push origin feature/amazing-feature`
+7. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+For support, questions, or feature requests:
+- 📧 Email: support@nomadsoft.us
+- 🐛 Issues: [GitHub Issues](https://github.com/NomadNiko/easytix-backend/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/NomadNiko/easytix-backend/discussions)
+
+## 🙏 Acknowledgments
+
+- Built on the excellent [NestJS Boilerplate](https://github.com/brocoders/nestjs-boilerplate)
+- Database modeling with [Mongoose](https://mongoosejs.com/)
+- Authentication powered by [Passport](http://www.passportjs.org/)
+- Email templates with [Handlebars](https://handlebarsjs.com/)
+- API documentation with [Swagger](https://swagger.io/)
+
+---
+
+**Made with ❤️ by the EasyTix Team**
