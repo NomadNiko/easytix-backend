@@ -6,7 +6,7 @@ A robust, scalable NestJS backend service for the EasyTix ticket management syst
 
 - **API Documentation**: https://etdevserver.nomadsoft.us/docs
 - **Frontend Application**: https://etdev.nomadsoft.us
-- **Test Credentials**: admin@example.com / secret
+- **Test Credentials**: aloha@ixplor.app / password
 
 ## 🚀 Key Features
 
