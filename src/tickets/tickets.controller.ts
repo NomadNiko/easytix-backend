@@ -15,6 +15,9 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { Roles } from '../roles/roles.decorator';
+import { RolesGuard } from '../roles/roles.guard';
+import { RoleEnum } from '../roles/roles.enum';
 import { TicketsService } from './tickets.service';
 import { PublicTicketService } from './services/public-ticket.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
@@ -70,8 +73,9 @@ export class TicketsController {
   @ApiOkResponse({
     type: [Ticket],
   })
-  findAll(@Query() queryDto: QueryTicketDto): Promise<Ticket[]> {
+  findAll(@Request() request, @Query() queryDto: QueryTicketDto): Promise<Ticket[]> {
     return this.ticketsService.findAll(
+      request.user,
       {
         page: queryDto?.page || 1,
         limit: queryDto?.limit || 10,
@@ -95,27 +99,30 @@ export class TicketsController {
   @ApiOkResponse({
     type: Ticket,
   })
-  findOne(@Param('id') id: string): Promise<Ticket> {
-    return this.ticketsService.findById(id);
+  findOne(@Request() request, @Param('id') id: string): Promise<Ticket> {
+    return this.ticketsService.findById(id, request.user);
   }
 
   @Patch(':id')
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @Roles(RoleEnum.admin, RoleEnum.serviceDesk)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({
     type: Ticket,
   })
   update(
+    @Request() request,
     @Param('id') id: string,
     @Body() updateTicketDto: UpdateTicketDto,
   ): Promise<Ticket> {
-    return this.ticketsService.update(id, updateTicketDto);
+    return this.ticketsService.update(request.user, id, updateTicketDto);
   }
 
   @Patch(':id/assign')
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @Roles(RoleEnum.admin, RoleEnum.serviceDesk)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({
     type: Ticket,
@@ -126,7 +133,7 @@ export class TicketsController {
     @Body() assignTicketDto: AssignTicketDto,
   ): Promise<Ticket> {
     return this.ticketsService.assign(
-      request.user.id,
+      request.user,
       id,
       assignTicketDto.userId,
     );
@@ -134,7 +141,8 @@ export class TicketsController {
 
   @Patch(':id/status')
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @Roles(RoleEnum.admin, RoleEnum.serviceDesk)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({
     type: Ticket,
@@ -144,7 +152,7 @@ export class TicketsController {
     @Param('id') id: string,
     @Body('status') status: TicketStatus,
   ): Promise<Ticket> {
-    return this.ticketsService.updateStatus(request.user.id, id, status);
+    return this.ticketsService.updateStatus(request.user, id, status);
   }
 
   @Post(':id/documents')
@@ -179,7 +187,8 @@ export class TicketsController {
 
   @Delete(':id')
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @Roles(RoleEnum.admin)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Request() request, @Param('id') id: string): Promise<void> {
     return this.ticketsService.remove(request.user, id);

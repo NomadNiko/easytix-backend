@@ -18,6 +18,10 @@ export abstract class TicketRepository {
       assignedToId?: string;
       createdById?: string;
       search?: string;
+      serviceDeskFilter?: {
+        queueIds: string[];
+        userId: string;
+      };
     },
   ): Promise<Ticket[]>;
   abstract update(

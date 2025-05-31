@@ -44,6 +44,10 @@ export class TicketDocumentRepository implements TicketRepository {
       assignedToId?: string;
       createdById?: string;
       search?: string;
+      serviceDeskFilter?: {
+        queueIds: string[];
+        userId: string;
+      };
     },
   ): Promise<Ticket[]> {
     const query: FilterQuery<TicketSchemaClass> = {};
@@ -74,7 +78,31 @@ export class TicketDocumentRepository implements TicketRepository {
       query.createdById = filters.createdById;
     }
 
-    if (filters?.search) {
+    // Handle service desk filter (tickets in assigned queues OR created by user)
+    if (filters?.serviceDeskFilter) {
+      if (filters?.search) {
+        // Combine service desk filter with search using $and
+        query.$and = [
+          {
+            $or: [
+              { queueId: { $in: filters.serviceDeskFilter.queueIds } },
+              { createdById: filters.serviceDeskFilter.userId },
+            ],
+          },
+          {
+            $or: [
+              { title: { $regex: filters.search, $options: 'i' } },
+              { details: { $regex: filters.search, $options: 'i' } },
+            ],
+          },
+        ];
+      } else {
+        query.$or = [
+          { queueId: { $in: filters.serviceDeskFilter.queueIds } },
+          { createdById: filters.serviceDeskFilter.userId },
+        ];
+      }
+    } else if (filters?.search) {
       query.$or = [
         { title: { $regex: filters.search, $options: 'i' } },
         { details: { $regex: filters.search, $options: 'i' } },

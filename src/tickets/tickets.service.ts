@@ -120,6 +120,7 @@ export class TicketsService {
   }
 
   async findAll(
+    user: JwtPayloadType,
     paginationOptions: IPaginationOptions,
     filters?: {
       queueId?: string;
@@ -132,27 +133,99 @@ export class TicketsService {
     },
   ): Promise<Ticket[]> {
     // Convert string priority to enum if it exists
-    const formattedFilters = filters
+    let formattedFilters: any = filters
       ? {
           ...filters,
           priority: filters.priority
             ? (filters.priority as TicketPriority) // Type assertion for valid enum values
             : undefined,
         }
-      : undefined;
+      : {};
+
+    // Apply role-based filtering
+    // Convert role ID to number for comparison
+    const userRoleId = Number(user.role?.id);
+    
+    if (userRoleId === RoleEnum.admin) {
+      // Admins see all tickets - no additional filtering needed
+      // They can use any filters passed in without restriction
+      // formattedFilters stays exactly as provided
+    } else if (userRoleId === RoleEnum.serviceDesk) {
+      // Service Desk users see tickets in queues they are assigned to OR tickets they created
+      const userQueues = await this.queuesService.findQueuesByUserId(user.id.toString());
+      const queueIds = userQueues.map(queue => queue.id);
+      
+      // Apply service desk filter only if no specific filters are already applied
+      if (!formattedFilters?.queueId && !formattedFilters?.createdById && !formattedFilters?.assignedToId) {
+        // This will be handled in the repository to use $or condition
+        formattedFilters = {
+          ...formattedFilters,
+          serviceDeskFilter: {
+            queueIds,
+            userId: user.id.toString(),
+          },
+        };
+      }
+      // If specific filters are applied, service desk users can use them without restriction
+    } else {
+      // Regular users only see tickets they created
+      // Override any createdById filter to ensure they only see their own tickets
+      formattedFilters = {
+        ...formattedFilters,
+        createdById: user.id.toString(),
+      };
+    }
+
     return this.ticketRepository.findAll(paginationOptions, formattedFilters);
   }
 
-  async findById(id: string): Promise<Ticket> {
+  async findById(id: string, user?: JwtPayloadType): Promise<Ticket> {
     const ticket = await this.ticketRepository.findById(id);
     if (!ticket) {
       throw new NotFoundException('Ticket not found');
     }
+
+    // Apply access control
+    if (user) {
+      await this.checkTicketAccess(ticket, user);
+    }
+
     return ticket;
   }
 
-  async update(id: string, updateTicketDto: UpdateTicketDto): Promise<Ticket> {
-    const ticket = await this.findById(id);
+  private async checkTicketAccess(ticket: Ticket, user: JwtPayloadType): Promise<void> {
+    // Convert role ID to number for comparison
+    const userRoleId = Number(user.role?.id);
+    
+    // Admins can access all tickets
+    if (userRoleId === RoleEnum.admin) {
+      return;
+    }
+
+    // Service desk users can access tickets in their queues or tickets they created
+    if (userRoleId === RoleEnum.serviceDesk) {
+      if (ticket.createdById === user.id.toString()) {
+        return; // User created this ticket
+      }
+      
+      const userQueues = await this.queuesService.findQueuesByUserId(user.id.toString());
+      const queueIds = userQueues.map(queue => queue.id);
+      
+      if (queueIds.includes(ticket.queueId)) {
+        return; // Ticket is in user's assigned queue
+      }
+    }
+
+    // Regular users can only access tickets they created
+    if (userRoleId === RoleEnum.user && ticket.createdById === user.id.toString()) {
+      return;
+    }
+
+    throw new ForbiddenException('You do not have permission to access this ticket');
+  }
+
+  async update(user: JwtPayloadType, id: string, updateTicketDto: UpdateTicketDto): Promise<Ticket> {
+    const ticket = await this.findById(id, user);
     const oldTicket = { ...ticket }; // Save old state to compare changes
 
     // Handle closing notes logic
@@ -255,11 +328,11 @@ export class TicketsService {
   }
 
   async assign(
-    userId: string,
+    user: JwtPayloadType,
     ticketId: string,
     assigneeId: string,
   ): Promise<Ticket> {
-    const ticket = await this.findById(ticketId);
+    const ticket = await this.findById(ticketId, user);
     const oldAssigneeId = ticket.assignedToId;
     const updated = await this.ticketRepository.update(ticketId, {
       assignedToId: assigneeId,
@@ -271,7 +344,7 @@ export class TicketsService {
     // Create history item for assignment
     await this.historyItemsService.create({
       ticketId,
-      userId,
+      userId: user.id.toString(),
       type: HistoryItemType.ASSIGNED,
       details: `Ticket assigned ${
         oldAssigneeId ? 'from user ' + oldAssigneeId + ' ' : ''
@@ -310,12 +383,12 @@ export class TicketsService {
   }
 
   async updateStatus(
-    userId: string,
+    user: JwtPayloadType,
     ticketId: string,
     status: TicketStatus,
     closingNotes?: string,
   ): Promise<Ticket> {
-    const ticket = await this.findById(ticketId);
+    const ticket = await this.findById(ticketId, user);
     const oldStatus = ticket.status;
 
     if (ticket.status === status) {
@@ -346,7 +419,7 @@ export class TicketsService {
     // Create history item for status change
     await this.historyItemsService.create({
       ticketId,
-      userId,
+      userId: user.id.toString(),
       type:
         status === TicketStatus.CLOSED
           ? HistoryItemType.CLOSED
@@ -358,7 +431,7 @@ export class TicketsService {
 
     // 3) Notification: When a ticket a user opens is closed or reopened, notify them
     const eventType = status === TicketStatus.CLOSED ? 'ticketClosed' : 'ticketReopened';
-    if (ticket.createdById && ticket.createdById !== userId && 
+    if (ticket.createdById && ticket.createdById !== user.id.toString() && 
         await this.notificationPreferenceService.shouldSendNotification(ticket.createdById, eventType)) {
       await this.notificationsService.create({
         userId: ticket.createdById,
@@ -377,7 +450,7 @@ export class TicketsService {
     // 5) Notification: When a ticket a user is assigned to changes status, notify them
     if (
       ticket.assignedToId &&
-      ticket.assignedToId !== userId &&
+      ticket.assignedToId !== user.id.toString() &&
       ticket.assignedToId !== ticket.createdById &&
       await this.notificationPreferenceService.shouldSendNotification(ticket.assignedToId, eventType)
     ) {
@@ -501,8 +574,8 @@ export class TicketsService {
 
   async remove(user: JwtPayloadType, id: string): Promise<void> {
     const ticket = await this.findById(id);
-    // Add null check for user.role
-    const userRoleId = user.role?.id;
+    // Convert role ID to number for comparison
+    const userRoleId = Number(user.role?.id);
     // Only admins or the creator can delete tickets
     if (userRoleId !== RoleEnum.admin && user.id !== ticket.createdById) {
       throw new ForbiddenException(
