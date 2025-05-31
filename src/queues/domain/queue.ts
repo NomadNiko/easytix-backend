@@ -10,6 +10,13 @@ export class Queue {
 
   @ApiProperty({
     type: String,
+    example: 'tq-0001',
+    description: 'Unique queue identifier',
+  })
+  customId: string;
+
+  @ApiProperty({
+    type: String,
     example: 'IT Support',
   })
   name: string;

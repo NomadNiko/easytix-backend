@@ -7,18 +7,36 @@ import { Category } from '../../../../domain/category';
 import { CategoryRepository } from '../../category.repository';
 import { CategorySchemaClass } from '../entities/category.schema';
 import { CategoryMapper } from '../mappers/category.mapper';
+import { IdGeneratorService } from '../../../../../utils/id-generator.service';
 
 @Injectable()
 export class CategoryDocumentRepository implements CategoryRepository {
   constructor(
     @InjectModel(CategorySchemaClass.name)
     private categoryModel: Model<CategorySchemaClass>,
+    private idGeneratorService: IdGeneratorService,
   ) {}
 
   async create(
-    data: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>,
+    data: Omit<Category, 'id' | 'customId' | 'createdAt' | 'updatedAt'>,
   ): Promise<Category> {
-    const persistenceModel = CategoryMapper.toPersistence(data as Category);
+    // Get the next sequence number
+    const lastCategory = await this.categoryModel
+      .findOne({ customId: { $regex: /^tc-\d{4}$/ } })
+      .sort({ customId: -1 });
+    
+    let nextSequence = 1;
+    if (lastCategory && lastCategory.customId) {
+      nextSequence = this.idGeneratorService.extractCategorySequence(lastCategory.customId) + 1;
+    }
+    
+    // Generate custom ID
+    const customId = this.idGeneratorService.generateCategoryId(nextSequence);
+    
+    const persistenceModel = CategoryMapper.toPersistence({
+      ...data,
+      customId,
+    } as Category);
     const createdCategory = new this.categoryModel(persistenceModel);
     const categoryObject = await createdCategory.save();
     return CategoryMapper.toDomain(categoryObject);
@@ -70,6 +88,11 @@ export class CategoryDocumentRepository implements CategoryRepository {
     queueId: string,
   ): Promise<NullableType<Category>> {
     const categoryObject = await this.categoryModel.findOne({ name, queueId });
+    return categoryObject ? CategoryMapper.toDomain(categoryObject) : null;
+  }
+
+  async findByCustomId(customId: string): Promise<NullableType<Category>> {
+    const categoryObject = await this.categoryModel.findOne({ customId });
     return categoryObject ? CategoryMapper.toDomain(categoryObject) : null;
   }
 }

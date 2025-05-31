@@ -8,18 +8,36 @@ import { QueueRepository } from '../../queue.repository';
 import { QueueSchemaClass } from '../entities/queue.schema';
 import { QueueMapper } from '../mappers/queue.mapper';
 import { IPaginationOptions } from '../../../../../utils/types/pagination-options';
+import { IdGeneratorService } from '../../../../../utils/id-generator.service';
 
 @Injectable()
 export class QueueDocumentRepository implements QueueRepository {
   constructor(
     @InjectModel(QueueSchemaClass.name)
     private queueModel: Model<QueueSchemaClass>,
+    private idGeneratorService: IdGeneratorService,
   ) {}
 
   async create(
-    data: Omit<Queue, 'id' | 'createdAt' | 'updatedAt'>,
+    data: Omit<Queue, 'id' | 'customId' | 'createdAt' | 'updatedAt'>,
   ): Promise<Queue> {
-    const persistenceModel = QueueMapper.toPersistence(data as Queue);
+    // Get the next sequence number
+    const lastQueue = await this.queueModel
+      .findOne({ customId: { $regex: /^tq-\d{4}$/ } })
+      .sort({ customId: -1 });
+    
+    let nextSequence = 1;
+    if (lastQueue && lastQueue.customId) {
+      nextSequence = this.idGeneratorService.extractQueueSequence(lastQueue.customId) + 1;
+    }
+    
+    // Generate custom ID
+    const customId = this.idGeneratorService.generateQueueId(nextSequence);
+    
+    const persistenceModel = QueueMapper.toPersistence({
+      ...data,
+      customId,
+    } as Queue);
     const createdQueue = new this.queueModel(persistenceModel);
     const queueObject = await createdQueue.save();
     return QueueMapper.toDomain(queueObject);
@@ -111,6 +129,11 @@ export class QueueDocumentRepository implements QueueRepository {
 
   async findByName(name: string): Promise<NullableType<Queue>> {
     const queueObject = await this.queueModel.findOne({ name });
+    return queueObject ? QueueMapper.toDomain(queueObject) : null;
+  }
+
+  async findByCustomId(customId: string): Promise<NullableType<Queue>> {
+    const queueObject = await this.queueModel.findOne({ customId });
     return queueObject ? QueueMapper.toDomain(queueObject) : null;
   }
 }

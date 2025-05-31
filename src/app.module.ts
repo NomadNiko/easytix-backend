@@ -31,6 +31,7 @@ import { TicketsModule } from './tickets/tickets.module';
 import { HistoryItemsModule } from './history-items/history-items.module';
 import { TicketDocumentsModule } from './ticket-documents/ticket-documents.module';
 import { StartupNotificationModule } from './startup-notification/startup-notification.module';
+import { SystemDefaultsModule } from './system-defaults/system-defaults.module';
 
 @Module({
   imports: [
@@ -84,6 +85,7 @@ import { StartupNotificationModule } from './startup-notification/startup-notifi
     TicketsModule,
     HistoryItemsModule,
     TicketDocumentsModule,
+    SystemDefaultsModule,
     AuthModule,
     AuthFacebookModule,
     AuthGoogleModule,

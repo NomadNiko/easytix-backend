@@ -9,6 +9,7 @@ import {
 } from './infrastructure/persistence/document/entities/category.schema';
 import { CategoryRepository } from './infrastructure/persistence/category.repository';
 import { CategoryDocumentRepository } from './infrastructure/persistence/document/repositories/category.repository';
+import { IdGeneratorService } from '../utils/id-generator.service';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { CategoryDocumentRepository } from './infrastructure/persistence/documen
   controllers: [CategoriesController],
   providers: [
     CategoriesService,
+    IdGeneratorService,
     {
       provide: CategoryRepository,
       useClass: CategoryDocumentRepository,

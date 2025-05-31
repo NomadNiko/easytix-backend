@@ -53,4 +53,8 @@ export class CategoriesService {
   ): Promise<Category | null> {
     return this.categoryRepository.findByNameAndQueue(name, queueId);
   }
+
+  async findByCustomId(customId: string): Promise<Category | null> {
+    return this.categoryRepository.findByCustomId(customId);
+  }
 }

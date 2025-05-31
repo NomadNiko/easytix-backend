@@ -17,6 +17,7 @@ import { MailModule } from '../mail/mail.module';
 import { MailerModule } from '../mailer/mailer.module';
 import { QueuesModule } from '../queues/queues.module';
 import { CategoriesModule } from '../categories/categories.module';
+import { SystemDefaultsModule } from '../system-defaults/system-defaults.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { CategoriesModule } from '../categories/categories.module';
     MailerModule,
     QueuesModule,
     CategoriesModule,
+    SystemDefaultsModule,
   ],
   controllers: [TicketsController],
   providers: [

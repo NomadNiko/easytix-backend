@@ -6,6 +6,7 @@ export class QueueMapper {
   static toDomain(raw: QueueSchemaClass): Queue {
     const domainEntity = new Queue();
     domainEntity.id = raw._id.toString();
+    domainEntity.customId = raw.customId;
     domainEntity.name = raw.name;
     domainEntity.description = raw.description;
     domainEntity.assignedUserIds = raw.assignedUserIds || [];
@@ -19,6 +20,7 @@ export class QueueMapper {
     if (domainEntity.id) {
       persistenceEntity._id = domainEntity.id;
     }
+    persistenceEntity.customId = domainEntity.customId;
     persistenceEntity.name = domainEntity.name;
     persistenceEntity.description = domainEntity.description;
     persistenceEntity.assignedUserIds = domainEntity.assignedUserIds || [];

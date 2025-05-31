@@ -6,6 +6,7 @@ export class CategoryMapper {
   static toDomain(raw: CategorySchemaClass): Category {
     const domainEntity = new Category();
     domainEntity.id = raw._id.toString();
+    domainEntity.customId = raw.customId;
     domainEntity.queueId = raw.queueId;
     domainEntity.name = raw.name;
     domainEntity.createdAt = raw.createdAt;
@@ -18,6 +19,7 @@ export class CategoryMapper {
     if (domainEntity.id) {
       persistenceEntity._id = domainEntity.id;
     }
+    persistenceEntity.customId = domainEntity.customId;
     persistenceEntity.queueId = domainEntity.queueId;
     persistenceEntity.name = domainEntity.name;
     persistenceEntity.createdAt = domainEntity.createdAt;

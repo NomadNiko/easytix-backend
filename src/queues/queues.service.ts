@@ -127,6 +127,10 @@ export class QueuesService {
     return this.queueRepository.findByName(name);
   }
 
+  async findByCustomId(customId: string): Promise<Queue | null> {
+    return this.queueRepository.findByCustomId(customId);
+  }
+
   async findQueuesByUserId(userId: string): Promise<Queue[]> {
     return this.queueRepository.findByUserId(userId, { page: 1, limit: 100 });
   }

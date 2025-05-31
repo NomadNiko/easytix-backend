@@ -10,6 +10,13 @@ export class Category {
 
   @ApiProperty({
     type: String,
+    example: 'tc-0001',
+    description: 'Unique category identifier',
+  })
+  customId: string;
+
+  @ApiProperty({
+    type: String,
     example: '60a5d5d0e95b0b2d6c5c5e5a',
   })
   queueId: string;

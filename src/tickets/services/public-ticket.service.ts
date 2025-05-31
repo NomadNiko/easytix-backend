@@ -18,6 +18,7 @@ import { ConfigService } from '@nestjs/config';
 import { AllConfigType } from '../../config/config.type';
 import { QueuesService } from '../../queues/queues.service';
 import { CategoriesService } from '../../categories/categories.service';
+import { SystemDefaultsService } from '../../system-defaults/system-defaults.service';
 
 @Injectable()
 export class PublicTicketService {
@@ -28,39 +29,37 @@ export class PublicTicketService {
     private configService: ConfigService<AllConfigType>,
     private queuesService: QueuesService,
     private categoriesService: CategoriesService,
+    private systemDefaultsService: SystemDefaultsService,
   ) {}
 
   async createPublicTicket(dto: CreatePublicTicketDto): Promise<Ticket> {
-    // Get default queue and category from config
-    const defaultQueueName = this.configService.getOrThrow(
-      'app.defaultQueueName',
-      {
-        infer: true,
-      },
-    );
-    const defaultCategoryName = this.configService.getOrThrow(
-      'app.defaultCategoryName',
-      {
-        infer: true,
-      },
-    );
-
-    // Find default queue
-    const defaultQueue = await this.queuesService.findByName(defaultQueueName);
-    if (!defaultQueue) {
+    // Get default queue and category from SystemDefaults
+    const defaultQueueId = await this.systemDefaultsService.getDefaultQueueId();
+    if (!defaultQueueId) {
       throw new NotFoundException(
-        `Default queue "${defaultQueueName}" not found. Please run database seeds.`,
+        'Default queue not configured. Please contact an administrator to set up system defaults.',
       );
     }
 
-    // Find default category for the queue
-    const defaultCategory = await this.categoriesService.findByNameAndQueue(
-      defaultCategoryName,
-      defaultQueue.id,
-    );
+    const defaultCategoryId = await this.systemDefaultsService.getDefaultCategoryId();
+    if (!defaultCategoryId) {
+      throw new NotFoundException(
+        'Default category not configured. Please contact an administrator to set up system defaults.',
+      );
+    }
+
+    // Verify that the default queue and category exist by customId
+    const defaultQueue = await this.queuesService.findByCustomId(defaultQueueId);
+    if (!defaultQueue) {
+      throw new NotFoundException(
+        `Default queue with ID "${defaultQueueId}" not found. Please contact an administrator.`,
+      );
+    }
+
+    const defaultCategory = await this.categoriesService.findByCustomId(defaultCategoryId);
     if (!defaultCategory) {
       throw new NotFoundException(
-        `Default category "${defaultCategoryName}" not found for queue "${defaultQueueName}". Please run database seeds.`,
+        `Default category with ID "${defaultCategoryId}" not found. Please contact an administrator.`,
       );
     }
 
@@ -97,7 +96,7 @@ export class PublicTicketService {
       isNewUser = true;
     }
 
-    // Create ticket with default queue and category
+    // Create ticket with default queue and category (using MongoDB _id)
     const ticket = await this.ticketsService.create(userId, {
       queueId: defaultQueue.id,
       categoryId: defaultCategory.id,

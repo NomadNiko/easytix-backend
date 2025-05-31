@@ -13,6 +13,9 @@ export type CategorySchemaDocument = HydratedDocument<CategorySchemaClass>;
   },
 })
 export class CategorySchemaClass extends EntityDocumentHelper {
+  @Prop({ required: true, unique: true, index: true })
+  customId: string;
+
   @Prop({ required: true, index: true })
   queueId: string;
 

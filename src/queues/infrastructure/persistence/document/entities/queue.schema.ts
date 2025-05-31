@@ -13,6 +13,9 @@ export type QueueSchemaDocument = HydratedDocument<QueueSchemaClass>;
   },
 })
 export class QueueSchemaClass extends EntityDocumentHelper {
+  @Prop({ required: true, unique: true, index: true })
+  customId: string;
+
   @Prop({ required: true })
   name: string;
 

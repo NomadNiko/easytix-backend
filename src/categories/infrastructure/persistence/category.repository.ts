@@ -4,7 +4,7 @@ import { Category } from '../../domain/category';
 
 export abstract class CategoryRepository {
   abstract create(
-    data: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>,
+    data: Omit<Category, 'id' | 'customId' | 'createdAt' | 'updatedAt'>,
   ): Promise<Category>;
   abstract findById(id: Category['id']): Promise<NullableType<Category>>;
   abstract findByQueueId(queueId: string): Promise<Category[]>;
@@ -19,4 +19,5 @@ export abstract class CategoryRepository {
     name: string,
     queueId: string,
   ): Promise<NullableType<Category>>;
+  abstract findByCustomId(customId: string): Promise<NullableType<Category>>;
 }

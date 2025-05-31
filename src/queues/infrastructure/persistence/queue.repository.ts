@@ -5,7 +5,7 @@ import { IPaginationOptions } from '../../../utils/types/pagination-options';
 
 export abstract class QueueRepository {
   abstract create(
-    data: Omit<Queue, 'id' | 'createdAt' | 'updatedAt'>,
+    data: Omit<Queue, 'id' | 'customId' | 'createdAt' | 'updatedAt'>,
   ): Promise<Queue>;
   abstract findById(id: Queue['id']): Promise<NullableType<Queue>>;
   abstract findAll(
@@ -24,4 +24,5 @@ export abstract class QueueRepository {
   abstract addUser(id: Queue['id'], userId: string): Promise<Queue | null>;
   abstract removeUser(id: Queue['id'], userId: string): Promise<Queue | null>;
   abstract findByName(name: string): Promise<NullableType<Queue>>;
+  abstract findByCustomId(customId: string): Promise<NullableType<Queue>>;
 }

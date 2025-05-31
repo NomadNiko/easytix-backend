@@ -11,6 +11,7 @@ import { QueueRepository } from './infrastructure/persistence/queue.repository';
 import { QueueDocumentRepository } from './infrastructure/persistence/document/repositories/queue.repository';
 import { MailModule } from '../mail/mail.module';
 import { UsersModule } from '../users/users.module';
+import { IdGeneratorService } from '../utils/id-generator.service';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { UsersModule } from '../users/users.module';
   controllers: [QueuesController],
   providers: [
     QueuesService,
+    IdGeneratorService,
     {
       provide: QueueRepository,
       useClass: QueueDocumentRepository,
