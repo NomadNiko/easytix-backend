@@ -554,13 +554,13 @@ export class TicketsService {
       // Use specific history types for closed/reopened
       if (updateTicketDto.status === TicketStatus.CLOSED) {
         historyType = HistoryItemType.CLOSED;
-        historyDetails = `${updaterName} closed ticket${updateTicketDto.closingNotes ? ` with notes: ${updateTicketDto.closingNotes}` : ''}`;
+        historyDetails = `${updaterName} closed ticket`;
       } else if (updateTicketDto.status === TicketStatus.OPENED && 
                  (oldTicket.status === TicketStatus.CLOSED || oldTicket.status === TicketStatus.RESOLVED)) {
         historyType = HistoryItemType.REOPENED;
         historyDetails = `${updaterName} reopened ticket`;
-      } else if ((updateTicketDto.status === TicketStatus.RESOLVED) && updateTicketDto.closingNotes) {
-        historyDetails += ` with notes: ${updateTicketDto.closingNotes}`;
+      } else if (updateTicketDto.status === TicketStatus.RESOLVED) {
+        historyDetails = `${updaterName} resolved ticket`;
       }
       
       await this.historyItemsService.create({
@@ -569,6 +569,16 @@ export class TicketsService {
         type: historyType,
         details: historyDetails,
       });
+
+      // Create separate history item for closing notes if provided
+      if (updateTicketDto.closingNotes && updateTicketDto.closingNotes.trim()) {
+        await this.historyItemsService.create({
+          ticketId: id,
+          userId: user.id.toString(),
+          type: HistoryItemType.COMMENT,
+          details: updateTicketDto.closingNotes.trim(),
+        });
+      }
     }
 
     if (
@@ -767,13 +777,13 @@ export class TicketsService {
     // Use specific history types for closed/reopened
     if (status === TicketStatus.CLOSED) {
       historyType = HistoryItemType.CLOSED;
-      historyDetails = `${statusChangerName} closed ticket${closingNotes ? ` with notes: ${closingNotes}` : ''}`;
+      historyDetails = `${statusChangerName} closed ticket`;
     } else if (status === TicketStatus.OPENED && 
                (oldStatus === TicketStatus.CLOSED || oldStatus === TicketStatus.RESOLVED)) {
       historyType = HistoryItemType.REOPENED;
       historyDetails = `${statusChangerName} reopened ticket`;
-    } else if ((status === TicketStatus.RESOLVED) && closingNotes) {
-      historyDetails += ` with notes: ${closingNotes}`;
+    } else if (status === TicketStatus.RESOLVED) {
+      historyDetails = `${statusChangerName} resolved ticket`;
     }
     
     await this.historyItemsService.create({
@@ -782,6 +792,16 @@ export class TicketsService {
       type: historyType,
       details: historyDetails,
     });
+
+    // Create separate history item for closing notes if provided
+    if (closingNotes && closingNotes.trim()) {
+      await this.historyItemsService.create({
+        ticketId,
+        userId: user.id.toString(),
+        type: HistoryItemType.COMMENT,
+        details: closingNotes.trim(),
+      });
+    }
 
     // 3) Notification: When a ticket a user opens is closed or reopened, notify them
     const eventType = status === TicketStatus.CLOSED ? 'ticketClosed' : 'ticketReopened';
