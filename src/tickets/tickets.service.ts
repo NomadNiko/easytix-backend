@@ -448,26 +448,79 @@ export class TicketsService {
       throw new NotFoundException('Ticket not found');
     }
 
+    // Get user name for better history details
+    const updaterUser = await this.usersService.findById(user.id.toString());
+    const updaterName = updaterUser ? `${updaterUser.firstName} ${updaterUser.lastName}`.trim() || updaterUser.email : user.id.toString();
+
+    // Handle direct assignment changes (not through queue changes)
+    if (
+      updateTicketDto.assignedToId !== undefined &&
+      updateTicketDto.assignedToId !== oldTicket.assignedToId &&
+      (!updateTicketDto.queueId || updateTicketDto.queueId === oldTicket.queueId)
+    ) {
+      if (updateTicketDto.assignedToId === null && oldTicket.assignedToId) {
+        // Unassignment
+        const oldAssigneeUser = await this.usersService.findById(oldTicket.assignedToId);
+        const oldAssigneeName = oldAssigneeUser ? `${oldAssigneeUser.firstName} ${oldAssigneeUser.lastName}`.trim() || oldAssigneeUser.email : oldTicket.assignedToId;
+        await this.historyItemsService.create({
+          ticketId: id,
+          userId: user.id.toString(),
+          type: HistoryItemType.UNASSIGNED,
+          details: `${updaterName} unassigned ${oldAssigneeName} from ticket`,
+        });
+      } else if (updateTicketDto.assignedToId && !oldTicket.assignedToId) {
+        // New assignment
+        const assigneeUser = await this.usersService.findById(updateTicketDto.assignedToId);
+        const assigneeName = assigneeUser ? `${assigneeUser.firstName} ${assigneeUser.lastName}`.trim() || assigneeUser.email : updateTicketDto.assignedToId;
+        await this.historyItemsService.create({
+          ticketId: id,
+          userId: user.id.toString(),
+          type: HistoryItemType.ASSIGNED,
+          details: `${updaterName} assigned ticket to ${assigneeName}`,
+        });
+      } else if (updateTicketDto.assignedToId && oldTicket.assignedToId) {
+        // Reassignment
+        const oldAssigneeUser = await this.usersService.findById(oldTicket.assignedToId);
+        const assigneeUser = await this.usersService.findById(updateTicketDto.assignedToId);
+        const oldAssigneeName = oldAssigneeUser ? `${oldAssigneeUser.firstName} ${oldAssigneeUser.lastName}`.trim() || oldAssigneeUser.email : oldTicket.assignedToId;
+        const assigneeName = assigneeUser ? `${assigneeUser.firstName} ${assigneeUser.lastName}`.trim() || assigneeUser.email : updateTicketDto.assignedToId;
+        await this.historyItemsService.create({
+          ticketId: id,
+          userId: user.id.toString(),
+          type: HistoryItemType.ASSIGNED,
+          details: `${updaterName} reassigned ticket from ${oldAssigneeName} to ${assigneeName}`,
+        });
+      }
+    }
+
     // Handle notifications for queue, category and priority changes
     if (
       updateTicketDto.queueId &&
       updateTicketDto.queueId !== oldTicket.queueId
     ) {
+      // Get queue names for better history details
+      const oldQueue = await this.queuesService.findById(oldTicket.queueId);
+      const newQueue = await this.queuesService.findById(updateTicketDto.queueId);
+      const oldQueueName = oldQueue ? oldQueue.name : oldTicket.queueId;
+      const newQueueName = newQueue ? newQueue.name : updateTicketDto.queueId;
+
       // Log queue change
       await this.historyItemsService.create({
         ticketId: id,
         userId: user.id.toString(),
         type: HistoryItemType.QUEUE_CHANGED,
-        details: `Queue changed from ${oldTicket.queueId} to ${updateTicketDto.queueId}`,
+        details: `${updaterName} changed queue from ${oldQueueName} to ${newQueueName}`,
       });
 
       // Log unassignment if ticket was previously assigned
       if (oldTicket.assignedToId) {
+        const oldAssigneeUser = await this.usersService.findById(oldTicket.assignedToId);
+        const oldAssigneeName = oldAssigneeUser ? `${oldAssigneeUser.firstName} ${oldAssigneeUser.lastName}`.trim() || oldAssigneeUser.email : oldTicket.assignedToId;
         await this.historyItemsService.create({
           ticketId: id,
           userId: user.id.toString(),
           type: HistoryItemType.UNASSIGNED,
-          details: `Ticket unassigned due to queue change`,
+          details: `${updaterName} unassigned ${oldAssigneeName} due to queue change`,
         });
       }
     }
@@ -476,11 +529,45 @@ export class TicketsService {
       updateTicketDto.categoryId &&
       updateTicketDto.categoryId !== oldTicket.categoryId
     ) {
+      // Get category names for better history details
+      const oldCategory = await this.categoriesService.findById(oldTicket.categoryId);
+      const newCategory = await this.categoriesService.findById(updateTicketDto.categoryId);
+      const oldCategoryName = oldCategory ? oldCategory.name : oldTicket.categoryId;
+      const newCategoryName = newCategory ? newCategory.name : updateTicketDto.categoryId;
+
       await this.historyItemsService.create({
         ticketId: id,
         userId: user.id.toString(),
         type: HistoryItemType.CATEGORY_CHANGED,
-        details: `Category changed to ${updateTicketDto.categoryId}`,
+        details: `${updaterName} changed category from ${oldCategoryName} to ${newCategoryName}`,
+      });
+    }
+
+    // Handle status changes
+    if (
+      updateTicketDto.status &&
+      updateTicketDto.status !== oldTicket.status
+    ) {
+      let historyType = HistoryItemType.STATUS_CHANGED;
+      let historyDetails = `${updaterName} changed status from ${oldTicket.status} to ${updateTicketDto.status}`;
+      
+      // Use specific history types for closed/reopened
+      if (updateTicketDto.status === TicketStatus.CLOSED) {
+        historyType = HistoryItemType.CLOSED;
+        historyDetails = `${updaterName} closed ticket${updateTicketDto.closingNotes ? ` with notes: ${updateTicketDto.closingNotes}` : ''}`;
+      } else if (updateTicketDto.status === TicketStatus.OPENED && 
+                 (oldTicket.status === TicketStatus.CLOSED || oldTicket.status === TicketStatus.RESOLVED)) {
+        historyType = HistoryItemType.REOPENED;
+        historyDetails = `${updaterName} reopened ticket`;
+      } else if ((updateTicketDto.status === TicketStatus.RESOLVED) && updateTicketDto.closingNotes) {
+        historyDetails += ` with notes: ${updateTicketDto.closingNotes}`;
+      }
+      
+      await this.historyItemsService.create({
+        ticketId: id,
+        userId: user.id.toString(),
+        type: historyType,
+        details: historyDetails,
       });
     }
 
@@ -490,9 +577,9 @@ export class TicketsService {
     ) {
       await this.historyItemsService.create({
         ticketId: id,
-        userId: 'system', // You might want to pass the actual user ID here
+        userId: user.id.toString(),
         type: HistoryItemType.PRIORITY_CHANGED,
-        details: `Priority changed to ${updateTicketDto.priority}`,
+        details: `${updaterName} changed priority from ${oldTicket.priority} to ${updateTicketDto.priority}`,
       });
 
       // Send email notification for priority change
@@ -569,14 +656,27 @@ export class TicketsService {
       throw new NotFoundException('Ticket not found');
     }
 
+    // Get user names for better history details
+    const assignerUser = await this.usersService.findById(user.id.toString());
+    const assigneeUser = await this.usersService.findById(assigneeId);
+    const assignerName = assignerUser ? `${assignerUser.firstName} ${assignerUser.lastName}`.trim() || assignerUser.email : user.id.toString();
+    const assigneeName = assigneeUser ? `${assigneeUser.firstName} ${assigneeUser.lastName}`.trim() || assigneeUser.email : assigneeId;
+    
+    let historyDetails = '';
+    if (oldAssigneeId) {
+      const oldAssigneeUser = await this.usersService.findById(oldAssigneeId);
+      const oldAssigneeName = oldAssigneeUser ? `${oldAssigneeUser.firstName} ${oldAssigneeUser.lastName}`.trim() || oldAssigneeUser.email : oldAssigneeId;
+      historyDetails = `${assignerName} reassigned ticket from ${oldAssigneeName} to ${assigneeName}`;
+    } else {
+      historyDetails = `${assignerName} assigned ticket to ${assigneeName}`;
+    }
+
     // Create history item for assignment
     await this.historyItemsService.create({
       ticketId,
       userId: user.id.toString(),
       type: HistoryItemType.ASSIGNED,
-      details: `Ticket assigned ${
-        oldAssigneeId ? 'from user ' + oldAssigneeId + ' ' : ''
-      }to user ${assigneeId}`,
+      details: historyDetails,
     });
     
     // Create history item for status change if status was changed
@@ -585,7 +685,7 @@ export class TicketsService {
         ticketId,
         userId: user.id.toString(),
         type: HistoryItemType.STATUS_CHANGED,
-        details: `Status changed from ${TicketStatus.OPENED} to ${TicketStatus.IN_PROGRESS}`,
+        details: `${assignerName} changed status from ${TicketStatus.OPENED} to ${TicketStatus.IN_PROGRESS}`,
       });
     }
 
@@ -656,18 +756,22 @@ export class TicketsService {
       throw new NotFoundException('Ticket not found');
     }
 
+    // Get user name for better history details
+    const statusChangerUser = await this.usersService.findById(user.id.toString());
+    const statusChangerName = statusChangerUser ? `${statusChangerUser.firstName} ${statusChangerUser.lastName}`.trim() || statusChangerUser.email : user.id.toString();
+
     // Create history item for status change
     let historyType = HistoryItemType.STATUS_CHANGED;
-    let historyDetails = `Status changed from ${oldStatus} to ${status}`;
+    let historyDetails = `${statusChangerName} changed status from ${oldStatus} to ${status}`;
     
     // Use specific history types for closed/reopened
     if (status === TicketStatus.CLOSED) {
       historyType = HistoryItemType.CLOSED;
-      historyDetails = `Ticket closed${closingNotes ? ` with notes: ${closingNotes}` : ''}`;
+      historyDetails = `${statusChangerName} closed ticket${closingNotes ? ` with notes: ${closingNotes}` : ''}`;
     } else if (status === TicketStatus.OPENED && 
                (oldStatus === TicketStatus.CLOSED || oldStatus === TicketStatus.RESOLVED)) {
       historyType = HistoryItemType.REOPENED;
-      historyDetails = 'Ticket reopened';
+      historyDetails = `${statusChangerName} reopened ticket`;
     } else if ((status === TicketStatus.RESOLVED) && closingNotes) {
       historyDetails += ` with notes: ${closingNotes}`;
     }
