@@ -20,6 +20,10 @@ import { MailService } from '../mail/mail.service';
 import { UsersService } from '../users/users.service';
 import { QueuesService } from '../queues/queues.service';
 import { NotificationPreferenceService } from '../users/services/notification-preference.service';
+import { infinityPagination } from '../utils/infinity-pagination';
+import { InfinityPaginationResponseDto } from '../utils/dto/infinity-pagination-response.dto';
+import { CategoriesService } from '../categories/categories.service';
+import { TicketResponseDto } from './dto/ticket-response.dto';
 
 @Injectable()
 export class TicketsService {
@@ -32,6 +36,7 @@ export class TicketsService {
     private readonly usersService: UsersService,
     private readonly queuesService: QueuesService,
     private readonly notificationPreferenceService: NotificationPreferenceService,
+    private readonly categoriesService: CategoriesService,
   ) {}
 
   async create(
@@ -130,6 +135,7 @@ export class TicketsService {
       assignedToId?: string;
       createdById?: string;
       search?: string;
+      userIds?: string[];
     },
   ): Promise<Ticket[]> {
     // Convert string priority to enum if it exists
@@ -177,6 +183,188 @@ export class TicketsService {
     }
 
     return this.ticketRepository.findAll(paginationOptions, formattedFilters);
+  }
+
+  async findAllPaginated(
+    user: JwtPayloadType,
+    paginationOptions: IPaginationOptions,
+    filters?: {
+      queueId?: string;
+      categoryId?: string;
+      status?: TicketStatus;
+      priority?: string;
+      assignedToId?: string;
+      createdById?: string;
+      search?: string;
+      userIds?: string[];
+    },
+  ): Promise<InfinityPaginationResponseDto<TicketResponseDto>> {
+    // Apply RBAC filters
+    const formattedFilters = await this.applyRBACFilters(user, filters);
+    
+    // Get tickets and total count in parallel
+    const [tickets, total] = await Promise.all([
+      this.ticketRepository.findAll(paginationOptions, formattedFilters),
+      this.ticketRepository.countAll(formattedFilters),
+    ]);
+    
+    const enrichedTickets = await this.enrichTicketsWithRelations(tickets);
+    return infinityPagination(enrichedTickets, paginationOptions, total);
+  }
+
+  private async enrichTicketsWithRelations(tickets: Ticket[]): Promise<TicketResponseDto[]> {
+    // Get unique queue and category IDs
+    const queueIds = [...new Set(tickets.map(t => t.queueId))];
+    const categoryIds = [...new Set(tickets.map(t => t.categoryId))];
+
+    // Fetch queues and categories in parallel
+    const [queues, categories] = await Promise.all([
+      Promise.all(queueIds.map(id => this.queuesService.findById(id).catch(() => null))),
+      Promise.all(categoryIds.map(id => this.categoriesService.findById(id).catch(() => null))),
+    ]);
+
+    // Create maps for quick lookup
+    const queueMap = new Map(queues.filter(q => q).map(q => [q!.id, q!]));
+    const categoryMap = new Map(categories.filter(c => c).map(c => [c!.id, c!]));
+
+    // Enrich tickets with queue and category names
+    return tickets.map(ticket => {
+      const queue = queueMap.get(ticket.queueId);
+      const category = categoryMap.get(ticket.categoryId);
+      
+      return {
+        ...ticket,
+        queue: queue ? { id: queue.id, name: queue.name } : undefined,
+        category: category ? { id: category.id, name: category.name } : undefined,
+      } as TicketResponseDto;
+    });
+  }
+
+  async findAllWithoutPagination(
+    user: JwtPayloadType,
+    filters?: {
+      queueId?: string;
+      categoryId?: string;
+      status?: TicketStatus;
+      priority?: TicketPriority;
+      assignedToId?: string;
+      createdById?: string;
+      search?: string;
+      userIds?: string[];
+    }
+  ): Promise<TicketResponseDto[]> {
+    // Apply RBAC filters
+    const filterQuery = await this.applyRBACFilters(user, filters);
+    
+    // Fetch all tickets without pagination
+    const tickets = await this.ticketRepository.findAllWithoutPagination(filterQuery);
+    
+    // Enrich with relations
+    return this.enrichTicketsWithRelations(tickets);
+  }
+
+  async getStatistics(
+    user: JwtPayloadType,
+    filters?: {
+      queueId?: string;
+      categoryId?: string;
+      status?: TicketStatus;
+      priority?: TicketPriority;
+      assignedToId?: string;
+      createdById?: string;
+      search?: string;
+      userIds?: string[];
+    }
+  ): Promise<{
+    total: number;
+    open: number;
+    closed: number;
+    byPriority: {
+      high: number;
+      medium: number;
+      low: number;
+    };
+    byQueue: Array<{
+      queueId: string;
+      queueName: string;
+      count: number;
+    }>;
+  }> {
+    // Apply RBAC filters
+    const filterQuery = await this.applyRBACFilters(user, filters);
+    
+    // Fetch all tickets for statistics
+    const tickets = await this.ticketRepository.findAllWithoutPagination(filterQuery);
+    
+    // Calculate statistics
+    const total = tickets.length;
+    const open = tickets.filter(t => t.status === TicketStatus.OPENED).length;
+    const closed = tickets.filter(t => t.status === TicketStatus.CLOSED).length;
+    
+    const byPriority = {
+      high: tickets.filter(t => t.priority === TicketPriority.HIGH).length,
+      medium: tickets.filter(t => t.priority === TicketPriority.MEDIUM).length,
+      low: tickets.filter(t => t.priority === TicketPriority.LOW).length,
+    };
+    
+    // Group by queue
+    const queueGroups = new Map<string, number>();
+    tickets.forEach(ticket => {
+      const count = queueGroups.get(ticket.queueId) || 0;
+      queueGroups.set(ticket.queueId, count + 1);
+    });
+    
+    // Get queue names
+    const byQueue = await Promise.all(
+      Array.from(queueGroups.entries()).map(async ([queueId, count]) => {
+        const queue = await this.queuesService.findById(queueId).catch(() => null);
+        return {
+          queueId,
+          queueName: queue?.name || 'Unknown',
+          count,
+        };
+      })
+    );
+    
+    return {
+      total,
+      open,
+      closed,
+      byPriority,
+      byQueue: byQueue.sort((a, b) => b.count - a.count),
+    };
+  }
+
+  private async applyRBACFilters(
+    user: JwtPayloadType,
+    filters?: any
+  ): Promise<any> {
+    const userRoleId = Number(user.role?.id);
+    
+    // Admins see all tickets with no additional filters
+    if (userRoleId === RoleEnum.admin) {
+      return filters || {};
+    }
+
+    // Service desk users see tickets in their queues or tickets they created
+    if (userRoleId === RoleEnum.serviceDesk) {
+      const userQueues = await this.queuesService.findQueuesByUserId(user.id.toString());
+      const queueIds = userQueues.map(queue => queue.id);
+      
+      return {
+        ...filters,
+        serviceDeskFilter: {
+          queueIds,
+          userId: user.id.toString(),
+        },
+      };
+    }
+
+    // Regular users only see tickets they created
+    return {
+      ...filters,
+      createdById: user.id.toString(),
+    };
   }
 
   async findById(id: string, user?: JwtPayloadType): Promise<Ticket> {
@@ -247,19 +435,50 @@ export class TicketsService {
       updateData.closedAt = new Date();
     }
 
+    // If queue is being changed, unassign the ticket
+    if (
+      updateTicketDto.queueId &&
+      updateTicketDto.queueId !== oldTicket.queueId
+    ) {
+      updateData.assignedToId = null;
+    }
+
     const updatedTicket = await this.ticketRepository.update(id, updateData);
     if (!updatedTicket) {
       throw new NotFoundException('Ticket not found');
     }
 
-    // Handle notifications for category and priority changes
+    // Handle notifications for queue, category and priority changes
+    if (
+      updateTicketDto.queueId &&
+      updateTicketDto.queueId !== oldTicket.queueId
+    ) {
+      // Log queue change
+      await this.historyItemsService.create({
+        ticketId: id,
+        userId: user.id.toString(),
+        type: HistoryItemType.QUEUE_CHANGED,
+        details: `Queue changed from ${oldTicket.queueId} to ${updateTicketDto.queueId}`,
+      });
+
+      // Log unassignment if ticket was previously assigned
+      if (oldTicket.assignedToId) {
+        await this.historyItemsService.create({
+          ticketId: id,
+          userId: user.id.toString(),
+          type: HistoryItemType.UNASSIGNED,
+          details: `Ticket unassigned due to queue change`,
+        });
+      }
+    }
+
     if (
       updateTicketDto.categoryId &&
       updateTicketDto.categoryId !== oldTicket.categoryId
     ) {
       await this.historyItemsService.create({
         ticketId: id,
-        userId: 'system', // You might want to pass the actual user ID here
+        userId: user.id.toString(),
         type: HistoryItemType.CATEGORY_CHANGED,
         details: `Category changed to ${updateTicketDto.categoryId}`,
       });
@@ -334,9 +553,18 @@ export class TicketsService {
   ): Promise<Ticket> {
     const ticket = await this.findById(ticketId, user);
     const oldAssigneeId = ticket.assignedToId;
-    const updated = await this.ticketRepository.update(ticketId, {
+    
+    // Prepare update data
+    const updateData: any = {
       assignedToId: assigneeId,
-    });
+    };
+    
+    // Automatically set status to IN_PROGRESS when assigning
+    if (assigneeId && ticket.status === TicketStatus.OPENED) {
+      updateData.status = TicketStatus.IN_PROGRESS;
+    }
+    
+    const updated = await this.ticketRepository.update(ticketId, updateData);
     if (!updated) {
       throw new NotFoundException('Ticket not found');
     }
@@ -350,6 +578,16 @@ export class TicketsService {
         oldAssigneeId ? 'from user ' + oldAssigneeId + ' ' : ''
       }to user ${assigneeId}`,
     });
+    
+    // Create history item for status change if status was changed
+    if (assigneeId && ticket.status === TicketStatus.OPENED) {
+      await this.historyItemsService.create({
+        ticketId,
+        userId: user.id.toString(),
+        type: HistoryItemType.STATUS_CHANGED,
+        details: `Status changed from ${TicketStatus.OPENED} to ${TicketStatus.IN_PROGRESS}`,
+      });
+    }
 
     // 2) Notification: When a user is assigned to a ticket, notify them
     if (await this.notificationPreferenceService.shouldSendNotification(assigneeId, 'ticketAssigned')) {
@@ -397,18 +635,20 @@ export class TicketsService {
 
     const updateData: any = { status };
 
-    // Handle closing notes logic
-    if (status === TicketStatus.CLOSED && oldStatus !== TicketStatus.CLOSED) {
+    // Handle closing notes logic for both CLOSED and RESOLVED statuses
+    if ((status === TicketStatus.CLOSED || status === TicketStatus.RESOLVED) && 
+        oldStatus !== TicketStatus.CLOSED && oldStatus !== TicketStatus.RESOLVED) {
       updateData.closedAt = new Date();
       if (closingNotes) {
         updateData.closingNotes = closingNotes;
       }
     } else if (
-      status === TicketStatus.OPENED &&
-      oldStatus === TicketStatus.CLOSED
+      (status === TicketStatus.OPENED || status === TicketStatus.IN_PROGRESS) &&
+      (oldStatus === TicketStatus.CLOSED || oldStatus === TicketStatus.RESOLVED)
     ) {
       // Clear closing notes when reopening
       updateData.closingNotes = null;
+      updateData.closedAt = null;
     }
 
     const updated = await this.ticketRepository.update(ticketId, updateData);
@@ -417,16 +657,26 @@ export class TicketsService {
     }
 
     // Create history item for status change
+    let historyType = HistoryItemType.STATUS_CHANGED;
+    let historyDetails = `Status changed from ${oldStatus} to ${status}`;
+    
+    // Use specific history types for closed/reopened
+    if (status === TicketStatus.CLOSED) {
+      historyType = HistoryItemType.CLOSED;
+      historyDetails = `Ticket closed${closingNotes ? ` with notes: ${closingNotes}` : ''}`;
+    } else if (status === TicketStatus.OPENED && 
+               (oldStatus === TicketStatus.CLOSED || oldStatus === TicketStatus.RESOLVED)) {
+      historyType = HistoryItemType.REOPENED;
+      historyDetails = 'Ticket reopened';
+    } else if ((status === TicketStatus.RESOLVED) && closingNotes) {
+      historyDetails += ` with notes: ${closingNotes}`;
+    }
+    
     await this.historyItemsService.create({
       ticketId,
       userId: user.id.toString(),
-      type:
-        status === TicketStatus.CLOSED
-          ? HistoryItemType.CLOSED
-          : HistoryItemType.REOPENED,
-      details: `Ticket ${
-        status === TicketStatus.CLOSED ? 'closed' : 'reopened'
-      }`,
+      type: historyType,
+      details: historyDetails,
     });
 
     // 3) Notification: When a ticket a user opens is closed or reopened, notify them
@@ -474,20 +724,21 @@ export class TicketsService {
       // Map TicketStatus enum to display strings
       const statusMap = {
         [TicketStatus.OPENED]: 'Opened',
+        [TicketStatus.IN_PROGRESS]: 'In Progress',
+        [TicketStatus.RESOLVED]: 'Resolved',
         [TicketStatus.CLOSED]: 'Closed',
       };
 
-      // Special handling for resolved status (using closed with resolution message)
-      if (oldStatus === TicketStatus.OPENED && status === TicketStatus.CLOSED && 
+      // Special handling for resolved status
+      if (status === TicketStatus.RESOLVED && 
           await this.notificationPreferenceService.shouldSendEmail(updated.createdById, 'ticketResolved')) {
-        // This could be a resolution - send both resolved and closed emails
         await this.mailService.ticketResolved({
           to: ticketCreator.email,
           data: {
             ticket: updated,
             userName: ticketCreator.firstName || 'User',
             resolutionSummary:
-              'Your issue has been resolved by our support team.',
+              closingNotes || 'Your issue has been resolved by our support team.',
           },
         });
       }

@@ -4,9 +4,11 @@ import { InfinityPaginationResponseDto } from './dto/infinity-pagination-respons
 export const infinityPagination = <T>(
   data: T[],
   options: IPaginationOptions,
+  total?: number,
 ): InfinityPaginationResponseDto<T> => {
   return {
     data,
     hasNextPage: data.length === options.limit,
+    total,
   };
 };

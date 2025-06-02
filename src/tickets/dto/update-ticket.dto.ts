@@ -7,6 +7,14 @@ import { TicketPriority, TicketStatus } from '../domain/ticket';
 export class UpdateTicketDto {
   @ApiPropertyOptional({
     type: String,
+    example: '60a5d5d0e95b0b2d6c5c5e5a',
+  })
+  @IsString()
+  @IsOptional()
+  queueId?: string;
+
+  @ApiPropertyOptional({
+    type: String,
     example: '60a5d5d0e95b0b2d6c5c5e5b',
   })
   @IsString()

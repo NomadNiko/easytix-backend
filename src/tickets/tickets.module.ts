@@ -11,6 +11,10 @@ import {
 import { TicketRepository } from './infrastructure/persistence/ticket.repository';
 import { TicketDocumentRepository } from './infrastructure/persistence/document/repositories/ticket.repository';
 import { HistoryItemsModule } from '../history-items/history-items.module';
+import {
+  HistoryItemSchema,
+  HistoryItemSchemaClass,
+} from '../history-items/infrastructure/persistence/document/entities/history-item.schema';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { UsersModule } from '../users/users.module';
 import { MailModule } from '../mail/mail.module';
@@ -23,6 +27,7 @@ import { SystemDefaultsModule } from '../system-defaults/system-defaults.module'
   imports: [
     MongooseModule.forFeature([
       { name: TicketSchemaClass.name, schema: TicketSchema },
+      { name: HistoryItemSchemaClass.name, schema: HistoryItemSchema },
     ]),
     forwardRef(() => HistoryItemsModule),
     NotificationsModule,

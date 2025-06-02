@@ -71,14 +71,29 @@ export class TicketsController {
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({
-    type: [Ticket],
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/Ticket' },
+        },
+        hasNextPage: {
+          type: 'boolean',
+        },
+        total: {
+          type: 'number',
+          description: 'Total number of tickets matching the filters',
+        },
+      },
+    },
   })
-  findAll(@Request() request, @Query() queryDto: QueryTicketDto): Promise<Ticket[]> {
-    return this.ticketsService.findAll(
+  findAll(@Request() request, @Query() queryDto: QueryTicketDto) {
+    return this.ticketsService.findAllPaginated(
       request.user,
       {
         page: queryDto?.page || 1,
-        limit: queryDto?.limit || 10,
+        limit: queryDto?.limit || 20,
       },
       {
         queueId: queryDto?.queueId,
@@ -88,8 +103,76 @@ export class TicketsController {
         assignedToId: queryDto?.assignedToId,
         createdById: queryDto?.createdById,
         search: queryDto?.search,
+        userIds: queryDto?.userIds,
       },
     );
+  }
+
+  @Get('statistics')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({
+    schema: {
+      type: 'object',
+      properties: {
+        total: { type: 'number' },
+        open: { type: 'number' },
+        closed: { type: 'number' },
+        byPriority: {
+          type: 'object',
+          properties: {
+            high: { type: 'number' },
+            medium: { type: 'number' },
+            low: { type: 'number' },
+          },
+        },
+        byQueue: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              queueId: { type: 'string' },
+              queueName: { type: 'string' },
+              count: { type: 'number' },
+            },
+          },
+        },
+      },
+    },
+  })
+  getStatistics(@Request() request, @Query() queryDto: QueryTicketDto) {
+    return this.ticketsService.getStatistics(request.user, {
+      queueId: queryDto?.queueId,
+      categoryId: queryDto?.categoryId,
+      status: queryDto?.status,
+      priority: queryDto?.priority,
+      assignedToId: queryDto?.assignedToId,
+      createdById: queryDto?.createdById,
+      search: queryDto?.search,
+      userIds: queryDto?.userIds,
+    });
+  }
+
+  @Get('all')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({
+    type: [Ticket],
+    description: 'Returns all tickets accessible by the user without pagination',
+  })
+  findAllWithoutPagination(@Request() request, @Query() queryDto: QueryTicketDto) {
+    return this.ticketsService.findAllWithoutPagination(request.user, {
+      queueId: queryDto?.queueId,
+      categoryId: queryDto?.categoryId,
+      status: queryDto?.status,
+      priority: queryDto?.priority,
+      assignedToId: queryDto?.assignedToId,
+      createdById: queryDto?.createdById,
+      search: queryDto?.search,
+      userIds: queryDto?.userIds,
+    });
   }
 
   @Get(':id')
@@ -151,8 +234,9 @@ export class TicketsController {
     @Request() request,
     @Param('id') id: string,
     @Body('status') status: TicketStatus,
+    @Body('closingNotes') closingNotes?: string,
   ): Promise<Ticket> {
-    return this.ticketsService.updateStatus(request.user, id, status);
+    return this.ticketsService.updateStatus(request.user, id, status, closingNotes);
   }
 
   @Post(':id/documents')

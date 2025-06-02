@@ -1,6 +1,6 @@
 // src/tickets/dto/query-ticket.dto.ts
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, IsArray } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { TicketPriority, TicketStatus } from '../domain/ticket';
 
@@ -71,4 +71,19 @@ export class QueryTicketDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'Array of user IDs to filter tickets by (created by or assigned to)',
+  })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value.split(',').map(id => id.trim());
+    }
+    return value;
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  userIds?: string[];
 }

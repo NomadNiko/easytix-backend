@@ -3,6 +3,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export enum TicketStatus {
   OPENED = 'Opened',
+  IN_PROGRESS = 'In Progress',
+  RESOLVED = 'Resolved',
   CLOSED = 'Closed',
 }
 

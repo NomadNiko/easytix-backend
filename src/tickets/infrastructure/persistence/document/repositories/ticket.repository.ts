@@ -12,12 +12,16 @@ import { TicketRepository } from '../../ticket.repository';
 import { TicketSchemaClass } from '../entities/ticket.schema';
 import { TicketMapper } from '../mappers/ticket.mapper';
 import { IPaginationOptions } from '../../../../../utils/types/pagination-options';
+import { HistoryItemSchemaClass } from '../../../../../history-items/infrastructure/persistence/document/entities/history-item.schema';
+import { HistoryItemType } from '../../../../../history-items/domain/history-item';
 
 @Injectable()
 export class TicketDocumentRepository implements TicketRepository {
   constructor(
     @InjectModel(TicketSchemaClass.name)
     private ticketModel: Model<TicketSchemaClass>,
+    @InjectModel(HistoryItemSchemaClass.name)
+    private historyItemModel: Model<HistoryItemSchemaClass>,
   ) {}
 
   async create(
@@ -34,24 +38,35 @@ export class TicketDocumentRepository implements TicketRepository {
     return ticketObject ? TicketMapper.toDomain(ticketObject) : null;
   }
 
-  async findAll(
-    paginationOptions: IPaginationOptions,
-    filters?: {
-      queueId?: string;
-      categoryId?: string;
-      status?: TicketStatus;
-      priority?: TicketPriority;
-      assignedToId?: string;
-      createdById?: string;
-      search?: string;
-      serviceDeskFilter?: {
-        queueIds: string[];
-        userId: string;
-      };
-    },
-  ): Promise<Ticket[]> {
-    const query: FilterQuery<TicketSchemaClass> = {};
+  private async getTicketIdsWithComments(search: string): Promise<string[]> {
+    // Find all comments that match the search term
+    const comments = await this.historyItemModel.find({
+      type: HistoryItemType.COMMENT,
+      details: { $regex: search, $options: 'i' },
+    }).select('ticketId');
+    
+    // Extract unique ticket IDs
+    return [...new Set(comments.map(comment => comment.ticketId))];
+  }
 
+  private async buildQuery(filters?: {
+    queueId?: string;
+    categoryId?: string;
+    status?: TicketStatus;
+    priority?: TicketPriority;
+    assignedToId?: string;
+    createdById?: string;
+    search?: string;
+    userIds?: string[];
+    serviceDeskFilter?: {
+      queueIds: string[];
+      userId: string;
+    };
+  }): Promise<FilterQuery<TicketSchemaClass>> {
+    const query: FilterQuery<TicketSchemaClass> = {};
+    const andConditions: any[] = [];
+
+    // Basic filters
     if (filters?.queueId) {
       query.queueId = filters.queueId;
     }
@@ -68,46 +83,77 @@ export class TicketDocumentRepository implements TicketRepository {
       query.priority = filters.priority;
     }
 
-    if (filters?.assignedToId) {
-      query.assignedToId = filters.assignedToId;
-    } else if (filters?.assignedToId === null) {
-      query.assignedToId = null;
+    // Handle assignedToId and createdById only if userIds is not provided
+    if (!filters?.userIds || filters.userIds.length === 0) {
+      if (filters?.assignedToId) {
+        query.assignedToId = filters.assignedToId;
+      } else if (filters?.assignedToId === null) {
+        query.assignedToId = null;
+      }
+
+      if (filters?.createdById) {
+        query.createdById = filters.createdById;
+      }
     }
 
-    if (filters?.createdById) {
-      query.createdById = filters.createdById;
+    // Handle multiple user IDs filter
+    if (filters?.userIds && filters.userIds.length > 0) {
+      andConditions.push({
+        $or: [
+          { createdById: { $in: filters.userIds } },
+          { assignedToId: { $in: filters.userIds } },
+        ],
+      });
     }
 
-    // Handle service desk filter (tickets in assigned queues OR created by user)
+    // Handle service desk filter
     if (filters?.serviceDeskFilter) {
-      if (filters?.search) {
-        // Combine service desk filter with search using $and
-        query.$and = [
-          {
-            $or: [
-              { queueId: { $in: filters.serviceDeskFilter.queueIds } },
-              { createdById: filters.serviceDeskFilter.userId },
-            ],
-          },
-          {
-            $or: [
-              { title: { $regex: filters.search, $options: 'i' } },
-              { details: { $regex: filters.search, $options: 'i' } },
-            ],
-          },
-        ];
-      } else {
-        query.$or = [
+      andConditions.push({
+        $or: [
           { queueId: { $in: filters.serviceDeskFilter.queueIds } },
           { createdById: filters.serviceDeskFilter.userId },
-        ];
-      }
-    } else if (filters?.search) {
-      query.$or = [
-        { title: { $regex: filters.search, $options: 'i' } },
-        { details: { $regex: filters.search, $options: 'i' } },
-      ];
+        ],
+      });
     }
+
+    // Handle search filter
+    if (filters?.search) {
+      const ticketIdsWithComments = await this.getTicketIdsWithComments(filters.search);
+      andConditions.push({
+        $or: [
+          { title: { $regex: filters.search, $options: 'i' } },
+          { details: { $regex: filters.search, $options: 'i' } },
+          { _id: { $in: ticketIdsWithComments } },
+        ],
+      });
+    }
+
+    // Combine all conditions
+    if (andConditions.length > 0) {
+      query.$and = andConditions;
+    }
+
+    return query;
+  }
+
+  async findAll(
+    paginationOptions: IPaginationOptions,
+    filters?: {
+      queueId?: string;
+      categoryId?: string;
+      status?: TicketStatus;
+      priority?: TicketPriority;
+      assignedToId?: string;
+      createdById?: string;
+      search?: string;
+      userIds?: string[];
+      serviceDeskFilter?: {
+        queueIds: string[];
+        userId: string;
+      };
+    },
+  ): Promise<Ticket[]> {
+    const query = await this.buildQuery(filters);
 
     const ticketObjects = await this.ticketModel
       .find(query)
@@ -186,5 +232,52 @@ export class TicketDocumentRepository implements TicketRepository {
 
   async remove(id: Ticket['id']): Promise<void> {
     await this.ticketModel.deleteOne({ _id: id.toString() });
+  }
+
+  async findAllWithoutPagination(
+    filters?: {
+      queueId?: string;
+      categoryId?: string;
+      status?: TicketStatus;
+      priority?: TicketPriority;
+      assignedToId?: string;
+      createdById?: string;
+      search?: string;
+      userIds?: string[];
+      serviceDeskFilter?: {
+        queueIds: string[];
+        userId: string;
+      };
+    },
+  ): Promise<Ticket[]> {
+    const query = await this.buildQuery(filters);
+
+    const ticketObjects = await this.ticketModel
+      .find(query)
+      .sort({ createdAt: -1 });
+
+    return ticketObjects.map((ticketObject) =>
+      TicketMapper.toDomain(ticketObject),
+    );
+  }
+
+  async countAll(
+    filters?: {
+      queueId?: string;
+      categoryId?: string;
+      status?: TicketStatus;
+      priority?: TicketPriority;
+      assignedToId?: string;
+      createdById?: string;
+      search?: string;
+      userIds?: string[];
+      serviceDeskFilter?: {
+        queueIds: string[];
+        userId: string;
+      };
+    },
+  ): Promise<number> {
+    const query = await this.buildQuery(filters);
+    return this.ticketModel.countDocuments(query);
   }
 }
