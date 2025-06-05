@@ -55,11 +55,7 @@ export class TicketDocumentsService {
     }
   }
 
-  async uploadFile(
-    file: Express.Multer.File,
-    ticketId: string,
-    userJwtPayload: JwtPayloadType,
-  ) {
+  async uploadFile(file: Express.Multer.File, ticketId: string) {
     // Verify ticket exists and user has permission
     const ticket = await this.ticketsService.findById(ticketId);
     if (!ticket) {
@@ -101,8 +97,14 @@ export class TicketDocumentsService {
     });
 
     // 1) Notification: When anyone uploads a document to a ticket, notify the person that opened the ticket
-    if (ticket.createdById && ticket.createdById !== userJwtPayload.id && 
-        await this.notificationPreferenceService.shouldSendNotification(ticket.createdById, 'documentAdded')) {
+    if (
+      ticket.createdById &&
+      ticket.createdById !== userJwtPayload.id &&
+      (await this.notificationPreferenceService.shouldSendNotification(
+        ticket.createdById,
+        'documentAdded',
+      ))
+    ) {
       await this.notificationsService.create({
         userId: ticket.createdById,
         title: 'Document Added to Your Ticket',
@@ -118,7 +120,10 @@ export class TicketDocumentsService {
       ticket.assignedToId &&
       ticket.assignedToId !== userJwtPayload.id &&
       ticket.assignedToId !== ticket.createdById &&
-      await this.notificationPreferenceService.shouldSendNotification(ticket.assignedToId, 'documentAdded')
+      (await this.notificationPreferenceService.shouldSendNotification(
+        ticket.assignedToId,
+        'documentAdded',
+      ))
     ) {
       await this.notificationsService.create({
         userId: ticket.assignedToId,
@@ -229,8 +234,14 @@ export class TicketDocumentsService {
 
     // Notification: When a document is removed, notify relevant users
     // Notify ticket creator if they didn't delete it
-    if (ticket.createdById && ticket.createdById !== userJwtPayload.id && 
-        await this.notificationPreferenceService.shouldSendNotification(ticket.createdById, 'documentRemoved')) {
+    if (
+      ticket.createdById &&
+      ticket.createdById !== userJwtPayload.id &&
+      (await this.notificationPreferenceService.shouldSendNotification(
+        ticket.createdById,
+        'documentRemoved',
+      ))
+    ) {
       await this.notificationsService.create({
         userId: ticket.createdById,
         title: 'Document Removed from Your Ticket',
@@ -246,7 +257,10 @@ export class TicketDocumentsService {
       ticket.assignedToId &&
       ticket.assignedToId !== userJwtPayload.id &&
       ticket.assignedToId !== ticket.createdById &&
-      await this.notificationPreferenceService.shouldSendNotification(ticket.assignedToId, 'documentRemoved')
+      (await this.notificationPreferenceService.shouldSendNotification(
+        ticket.assignedToId,
+        'documentRemoved',
+      ))
     ) {
       await this.notificationsService.create({
         userId: ticket.assignedToId,

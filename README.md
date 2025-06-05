@@ -11,6 +11,7 @@ A robust, scalable NestJS backend service for the EasyTix ticket management syst
 ## 🚀 Key Features
 
 ### 🎫 Ticket Management System
+
 - **Public Ticket Creation** - Anonymous ticket submission with user creation
 - **Internal Ticket System** - Authenticated ticket management
 - **Priority & Status Tracking** - High/Medium/Low priority with lifecycle management
@@ -20,6 +21,7 @@ A robust, scalable NestJS backend service for the EasyTix ticket management syst
 - **Advanced Filtering** - Complex querying and search capabilities
 
 ### 👥 User & Role Management
+
 - **Role-based Access Control** - Admin and User roles with granular permissions
 - **User CRUD Operations** - Complete user lifecycle management
 - **Profile Management** - User information and avatar handling
@@ -27,6 +29,7 @@ A robust, scalable NestJS backend service for the EasyTix ticket management syst
 - **Notification Preferences** - Granular user notification settings
 
 ### 🔔 Advanced Notification System
+
 - **Granular Preferences** - User-controlled notification settings
 - **Smart Notifications** - Respects user preferences before sending
 - **Email Integration** - Automated email notifications with templates
@@ -34,12 +37,14 @@ A robust, scalable NestJS backend service for the EasyTix ticket management syst
 - **Admin Broadcasting** - System-wide notification capabilities
 
 ### 🏗️ Queue & Category Management
+
 - **Dynamic Queue Creation** - Flexible departmental organization
 - **Category System** - Hierarchical ticket categorization
 - **User Assignment** - Queue-specific user management
 - **Analytics Ready** - Performance tracking capabilities
 
 ### 🔐 Authentication & Security
+
 - **JWT Authentication** - Secure token-based authentication
 - **Email Verification** - Account activation workflow
 - **Password Reset** - Secure password recovery
@@ -47,6 +52,7 @@ A robust, scalable NestJS backend service for the EasyTix ticket management syst
 - **Rate Limiting** - API protection and abuse prevention
 
 ### 📁 File Management
+
 - **Multiple Storage Drivers** - Local filesystem and S3 support
 - **File Upload Security** - Type validation and size limits
 - **Document Associations** - Link files to tickets and users
@@ -68,6 +74,7 @@ A robust, scalable NestJS backend service for the EasyTix ticket management syst
 ## 📋 API Endpoints
 
 ### Authentication
+
 ```
 POST   /auth/email/login              # User login
 POST   /auth/email/register           # User registration
@@ -78,6 +85,7 @@ POST   /auth/refresh                  # Token refresh
 ```
 
 ### Tickets
+
 ```
 GET    /tickets                       # List tickets (filtered/paginated)
 POST   /tickets                       # Create new ticket
@@ -90,6 +98,7 @@ PATCH  /tickets/:id/status            # Update ticket status
 ```
 
 ### Users
+
 ```
 GET    /users                         # List users (admin only)
 POST   /users                         # Create user (admin only)
@@ -102,6 +111,7 @@ PATCH  /users/:id/notification-preferences  # Update notification settings
 ```
 
 ### Queues
+
 ```
 GET    /queues                        # List all queues
 POST   /queues                        # Create new queue (admin only)
@@ -113,6 +123,7 @@ DELETE /queues/:id/users/:userId      # Remove user from queue
 ```
 
 ### Categories
+
 ```
 GET    /categories                    # List categories
 POST   /categories                    # Create category (admin only)
@@ -122,6 +133,7 @@ DELETE /categories/:id                # Delete category (admin only)
 ```
 
 ### Notifications
+
 ```
 GET    /notifications                 # Get user notifications
 POST   /notifications                 # Create notification (admin only)
@@ -131,6 +143,7 @@ POST   /notifications/broadcast       # Send broadcast (admin only)
 ```
 
 ### History Items
+
 ```
 GET    /history-items                 # Get ticket history
 POST   /history-items                 # Add comment/history entry
@@ -140,6 +153,7 @@ DELETE /history-items/:id             # Delete history item
 ```
 
 ### Files
+
 ```
 POST   /files/upload                  # Upload file
 GET    /files/:id                     # Get file metadata
@@ -149,6 +163,7 @@ DELETE /files/:id                     # Delete file
 ## 🏃‍♂️ Quick Start
 
 ### Prerequisites
+
 - Node.js 18+
 - MongoDB 4.4+
 - SMTP service for emails
@@ -156,23 +171,27 @@ DELETE /files/:id                     # Delete file
 ### Installation
 
 1. **Clone the repository**
+
 ```bash
 git clone https://github.com/NomadNiko/easytix-backend.git
 cd easytix-backend
 ```
 
 2. **Install dependencies**
+
 ```bash
 npm install
 ```
 
 3. **Configure environment**
+
 ```bash
 cp env-example-document .env
 # Edit .env with your configuration
 ```
 
 4. **Start the application**
+
 ```bash
 # Development
 npm run start:dev
@@ -231,6 +250,7 @@ APPLE_APP_AUDIENCE=your-apple-audience
 ## 🧪 Testing
 
 ### Unit Tests
+
 ```bash
 # Run unit tests
 npm run test
@@ -243,6 +263,7 @@ npm run test:cov
 ```
 
 ### E2E Tests
+
 ```bash
 # Run E2E tests
 npm run test:e2e
@@ -252,6 +273,7 @@ npm run test:e2e -- auth.e2e-spec.ts
 ```
 
 ### Database Seeding
+
 ```bash
 # Seed the database with initial data
 npm run seed:run
@@ -305,6 +327,7 @@ src/
 ## 🔒 Security Features
 
 ### API Security
+
 - **JWT Authentication** with refresh tokens
 - **Rate limiting** to prevent abuse
 - **Input validation** with class-validator
@@ -313,6 +336,7 @@ src/
 - **File upload validation** with type and size limits
 
 ### Database Security
+
 - **Mongoose schema validation**
 - **Sanitized queries** to prevent injection
 - **Connection encryption** support
@@ -321,6 +345,7 @@ src/
 ## 🚀 Deployment
 
 ### Docker Deployment
+
 ```bash
 # Build the image
 docker build -t easytix-backend .
@@ -330,6 +355,7 @@ docker-compose up -d
 ```
 
 ### PM2 Production Deployment
+
 ```bash
 # Build the application
 npm run build
@@ -342,6 +368,7 @@ pm2 start ecosystem.config.js
 ```
 
 ### Environment-specific Builds
+
 ```bash
 # Development
 npm run start:dev
@@ -357,6 +384,7 @@ npm run start:debug
 ## 📊 Monitoring & Health Checks
 
 ### Health Check Endpoints
+
 ```
 GET /health          # Application health status
 GET /health/database # Database connectivity check
@@ -364,6 +392,7 @@ GET /health/memory   # Memory usage information
 ```
 
 ### Logging
+
 - **Structured logging** with Winston
 - **Request/Response logging** middleware
 - **Error tracking** with stack traces
@@ -372,6 +401,7 @@ GET /health/memory   # Memory usage information
 ## 🔧 Development
 
 ### Code Quality
+
 - **ESLint** for code linting
 - **Prettier** for code formatting
 - **Husky** for pre-commit hooks
@@ -379,6 +409,7 @@ GET /health/memory   # Memory usage information
 - **Jest** for testing
 
 ### API Documentation
+
 - **Swagger/OpenAPI** integration
 - **Auto-generated documentation** from decorators
 - **Interactive API explorer**
@@ -401,6 +432,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🆘 Support
 
 For support, questions, or feature requests:
+
 - 📧 Email: support@nomadsoft.us
 - 🐛 Issues: [GitHub Issues](https://github.com/NomadNiko/easytix-backend/issues)
 - 💬 Discussions: [GitHub Discussions](https://github.com/NomadNiko/easytix-backend/discussions)

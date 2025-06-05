@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  ConflictException,
-  HttpStatus,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { CreatePublicTicketDto } from '../dto/create-public-ticket.dto';
 import { TicketsService } from '../tickets.service';
@@ -12,8 +7,6 @@ import { MailerService } from '../../mailer/mailer.service';
 import { RoleEnum } from '../../roles/roles.enum';
 import { StatusEnum } from '../../statuses/statuses.enum';
 import { Ticket } from '../domain/ticket';
-import { TicketStatus } from '../domain/ticket';
-import path from 'path';
 import { ConfigService } from '@nestjs/config';
 import { AllConfigType } from '../../config/config.type';
 import { QueuesService } from '../../queues/queues.service';
@@ -41,7 +34,8 @@ export class PublicTicketService {
       );
     }
 
-    const defaultCategoryId = await this.systemDefaultsService.getDefaultCategoryId();
+    const defaultCategoryId =
+      await this.systemDefaultsService.getDefaultCategoryId();
     if (!defaultCategoryId) {
       throw new NotFoundException(
         'Default category not configured. Please contact an administrator to set up system defaults.',
@@ -49,14 +43,16 @@ export class PublicTicketService {
     }
 
     // Verify that the default queue and category exist by customId
-    const defaultQueue = await this.queuesService.findByCustomId(defaultQueueId);
+    const defaultQueue =
+      await this.queuesService.findByCustomId(defaultQueueId);
     if (!defaultQueue) {
       throw new NotFoundException(
         `Default queue with ID "${defaultQueueId}" not found. Please contact an administrator.`,
       );
     }
 
-    const defaultCategory = await this.categoriesService.findByCustomId(defaultCategoryId);
+    const defaultCategory =
+      await this.categoriesService.findByCustomId(defaultCategoryId);
     if (!defaultCategory) {
       throw new NotFoundException(
         `Default category with ID "${defaultCategoryId}" not found. Please contact an administrator.`,

@@ -16,6 +16,10 @@ export class CategoriesService {
     });
   }
 
+  async findAll(): Promise<Category[]> {
+    return this.categoryRepository.findAll();
+  }
+
   async findByQueueId(queueId: string): Promise<Category[]> {
     return this.categoryRepository.findByQueueId(queueId);
   }

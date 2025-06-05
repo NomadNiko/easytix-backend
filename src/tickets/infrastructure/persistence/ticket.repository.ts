@@ -19,44 +19,46 @@ export abstract class TicketRepository {
       createdById?: string;
       search?: string;
       userIds?: string[];
+      createdAfter?: string;
+      createdBefore?: string;
       serviceDeskFilter?: {
         queueIds: string[];
         userId: string;
       };
     },
   ): Promise<Ticket[]>;
-  abstract findAllWithoutPagination(
-    filters?: {
-      queueId?: string;
-      categoryId?: string;
-      status?: TicketStatus;
-      priority?: TicketPriority;
-      assignedToId?: string;
-      createdById?: string;
-      search?: string;
-      userIds?: string[];
-      serviceDeskFilter?: {
-        queueIds: string[];
-        userId: string;
-      };
-    },
-  ): Promise<Ticket[]>;
-  abstract countAll(
-    filters?: {
-      queueId?: string;
-      categoryId?: string;
-      status?: TicketStatus;
-      priority?: TicketPriority;
-      assignedToId?: string;
-      createdById?: string;
-      search?: string;
-      userIds?: string[];
-      serviceDeskFilter?: {
-        queueIds: string[];
-        userId: string;
-      };
-    },
-  ): Promise<number>;
+  abstract findAllWithoutPagination(filters?: {
+    queueId?: string;
+    categoryId?: string;
+    status?: TicketStatus;
+    priority?: TicketPriority;
+    assignedToId?: string;
+    createdById?: string;
+    search?: string;
+    userIds?: string[];
+    createdAfter?: string;
+    createdBefore?: string;
+    serviceDeskFilter?: {
+      queueIds: string[];
+      userId: string;
+    };
+  }): Promise<Ticket[]>;
+  abstract countAll(filters?: {
+    queueId?: string;
+    categoryId?: string;
+    status?: TicketStatus;
+    priority?: TicketPriority;
+    assignedToId?: string;
+    createdById?: string;
+    search?: string;
+    userIds?: string[];
+    createdAfter?: string;
+    createdBefore?: string;
+    serviceDeskFilter?: {
+      queueIds: string[];
+      userId: string;
+    };
+  }): Promise<number>;
   abstract update(
     id: Ticket['id'],
     payload: Partial<

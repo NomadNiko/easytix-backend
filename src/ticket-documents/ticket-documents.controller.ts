@@ -67,7 +67,7 @@ export class TicketDocumentsController {
     @UploadedFile() file: Express.Multer.File,
     @Body('ticketId') ticketId: string,
   ) {
-    return this.ticketDocumentsService.uploadFile(file, ticketId, request.user);
+    return this.ticketDocumentsService.uploadFile(file, ticketId);
   }
 
   @Get(':ticketId')

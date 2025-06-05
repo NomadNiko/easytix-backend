@@ -91,7 +91,8 @@ export class UsersService {
       throw new Error('User not found');
     }
 
-    const currentPreferences = user.notificationPreferences || getDefaultNotificationPreferences();
+    const currentPreferences =
+      user.notificationPreferences || getDefaultNotificationPreferences();
     const updatedPreferences = {
       ...currentPreferences,
       ...updatePreferencesDto,

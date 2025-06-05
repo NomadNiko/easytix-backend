@@ -1,5 +1,5 @@
 // src/system-defaults/dto/update-system-default.dto.ts
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class UpdateSystemDefaultDto {

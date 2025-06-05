@@ -98,33 +98,36 @@ interface NotificationPreferences {
   ticketResolved: NotificationPreference;
   ticketReopened: NotificationPreference;
   ticketDeleted: NotificationPreference;
-  
+
   // Comment Events
   newComment: NotificationPreference;
-  
+
   // Document Events
   documentAdded: NotificationPreference;
   documentRemoved: NotificationPreference;
-  
+
   // Change Events
   priorityChanged: NotificationPreference;
   categoryChanged: NotificationPreference;
-  
+
   // Queue Events
   queueAssignment: NotificationPreference;
-  
+
   // Security Events
   passwordChanged: NotificationPreference;
   emailChanged: NotificationPreference;
-  
+
   // System Events
   highPriorityAlert: NotificationPreference;
   systemMaintenance: NotificationPreference;
 }
 
 export function getDefaultNotificationPreferences(): NotificationPreferences {
-  const defaultPreference: NotificationPreference = { email: true, notification: true };
-  
+  const defaultPreference: NotificationPreference = {
+    email: true,
+    notification: true,
+  };
+
   return {
     // Ticket Events
     ticketCreated: defaultPreference,
@@ -134,25 +137,25 @@ export function getDefaultNotificationPreferences(): NotificationPreferences {
     ticketResolved: defaultPreference,
     ticketReopened: defaultPreference,
     ticketDeleted: defaultPreference,
-    
+
     // Comment Events
     newComment: defaultPreference,
-    
+
     // Document Events
     documentAdded: defaultPreference,
     documentRemoved: defaultPreference,
-    
+
     // Change Events
     priorityChanged: defaultPreference,
     categoryChanged: defaultPreference,
-    
+
     // Queue Events
     queueAssignment: defaultPreference,
-    
+
     // Security Events - always enabled by default for security
     passwordChanged: { email: true, notification: true },
     emailChanged: { email: true, notification: true },
-    
+
     // System Events
     highPriorityAlert: defaultPreference,
     systemMaintenance: defaultPreference,

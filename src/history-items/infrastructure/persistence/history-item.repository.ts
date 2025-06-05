@@ -8,5 +8,6 @@ export abstract class HistoryItemRepository {
   ): Promise<HistoryItem>;
   abstract findById(id: HistoryItem['id']): Promise<NullableType<HistoryItem>>;
   abstract findByTicketId(ticketId: string): Promise<HistoryItem[]>;
+  abstract findByTicketIds(ticketIds: string[]): Promise<HistoryItem[]>;
   abstract remove(id: HistoryItem['id']): Promise<void>;
 }

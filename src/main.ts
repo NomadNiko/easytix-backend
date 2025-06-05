@@ -14,9 +14,31 @@ import { AllConfigType } from './config/config.type';
 import { ResolvePromisesInterceptor } from './utils/serializer.interceptor';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule);
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   const configService = app.get(ConfigService<AllConfigType>);
+
+  // Configure CORS with specific origins
+  const frontendDomain = configService.get('app.frontendDomain', {
+    infer: true,
+  });
+  app.enableCors({
+    origin: [
+      frontendDomain,
+      'http://localhost:3000', // Development frontend
+      'https://etdev.nomadsoft.us', // Production frontend
+    ].filter(Boolean),
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-custom-lang'],
+  });
+
+  // Configure body parser limits for file uploads
+  app.use('/api/v1/ticket-documents/upload-file', (req, res, next) => {
+    // Increase limit for file upload endpoints
+    req.setTimeout(60000); // 60 seconds timeout
+    next();
+  });
 
   app.enableShutdownHooks();
   app.setGlobalPrefix(

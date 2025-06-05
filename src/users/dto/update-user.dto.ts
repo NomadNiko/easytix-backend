@@ -50,10 +50,10 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @Type(() => StatusDto)
   status?: StatusDto;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     type: 'object',
     additionalProperties: true,
-    description: 'User notification preferences' 
+    description: 'User notification preferences',
   })
   @IsOptional()
   notificationPreferences?: any;

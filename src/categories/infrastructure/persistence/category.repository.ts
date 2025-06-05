@@ -7,6 +7,7 @@ export abstract class CategoryRepository {
     data: Omit<Category, 'id' | 'customId' | 'createdAt' | 'updatedAt'>,
   ): Promise<Category>;
   abstract findById(id: Category['id']): Promise<NullableType<Category>>;
+  abstract findAll(): Promise<Category[]>;
   abstract findByQueueId(queueId: string): Promise<Category[]>;
   abstract update(
     id: Category['id'],

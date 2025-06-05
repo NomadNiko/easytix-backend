@@ -10,7 +10,6 @@ import {
   Post,
   Request,
   Response,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import {

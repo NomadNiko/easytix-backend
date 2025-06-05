@@ -53,7 +53,9 @@ export class SystemDefaultSeedService {
     });
 
     if (!defaultQueue) {
-      console.error(`Default queue "${defaultQueueName}" not found. Make sure queue seeds run first.`);
+      console.error(
+        `Default queue "${defaultQueueName}" not found. Make sure queue seeds run first.`,
+      );
       return;
     }
 
@@ -64,7 +66,9 @@ export class SystemDefaultSeedService {
     });
 
     if (!defaultCategory) {
-      console.error(`Default category "${defaultCategoryName}" not found. Make sure category seeds run first.`);
+      console.error(
+        `Default category "${defaultCategoryName}" not found. Make sure category seeds run first.`,
+      );
       return;
     }
 
@@ -81,16 +85,22 @@ export class SystemDefaultSeedService {
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-      console.log(`System default for DEFAULT_QUEUE_ID set to: ${defaultQueue._id.toString()}`);
+      console.log(
+        `System default for DEFAULT_QUEUE_ID set to: ${defaultQueue._id.toString()}`,
+      );
     } else {
       // Update existing default queue if it's different
       if (existingDefaultQueue.value !== defaultQueue._id.toString()) {
         existingDefaultQueue.value = defaultQueue._id.toString();
         existingDefaultQueue.updatedAt = new Date();
         await existingDefaultQueue.save();
-        console.log(`System default for DEFAULT_QUEUE_ID updated to: ${defaultQueue._id.toString()}`);
+        console.log(
+          `System default for DEFAULT_QUEUE_ID updated to: ${defaultQueue._id.toString()}`,
+        );
       } else {
-        console.log(`System default for DEFAULT_QUEUE_ID already set correctly`);
+        console.log(
+          `System default for DEFAULT_QUEUE_ID already set correctly`,
+        );
       }
     }
 
@@ -107,16 +117,22 @@ export class SystemDefaultSeedService {
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-      console.log(`System default for DEFAULT_CATEGORY_ID set to: ${defaultCategory._id.toString()}`);
+      console.log(
+        `System default for DEFAULT_CATEGORY_ID set to: ${defaultCategory._id.toString()}`,
+      );
     } else {
       // Update existing default category if it's different
       if (existingDefaultCategory.value !== defaultCategory._id.toString()) {
         existingDefaultCategory.value = defaultCategory._id.toString();
         existingDefaultCategory.updatedAt = new Date();
         await existingDefaultCategory.save();
-        console.log(`System default for DEFAULT_CATEGORY_ID updated to: ${defaultCategory._id.toString()}`);
+        console.log(
+          `System default for DEFAULT_CATEGORY_ID updated to: ${defaultCategory._id.toString()}`,
+        );
       } else {
-        console.log(`System default for DEFAULT_CATEGORY_ID already set correctly`);
+        console.log(
+          `System default for DEFAULT_CATEGORY_ID already set correctly`,
+        );
       }
     }
 

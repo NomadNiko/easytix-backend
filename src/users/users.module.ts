@@ -24,6 +24,10 @@ const infrastructurePersistenceModule = DocumentUserPersistenceModule;
     NotificationPreferenceService,
     UsersService,
   ],
-  exports: [UsersService, NotificationPreferenceService, infrastructurePersistenceModule],
+  exports: [
+    UsersService,
+    NotificationPreferenceService,
+    infrastructurePersistenceModule,
+  ],
 })
 export class UsersModule {}

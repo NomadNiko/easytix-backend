@@ -5,7 +5,6 @@ import {
   NotFoundException,
   UnauthorizedException,
   UnprocessableEntityException,
-  Response,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';

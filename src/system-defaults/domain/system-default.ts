@@ -10,7 +10,8 @@ export class SystemDefault {
 
   @ApiProperty({
     type: String,
-    description: 'Configuration key (e.g., DEFAULT_QUEUE_ID, DEFAULT_CATEGORY_ID)',
+    description:
+      'Configuration key (e.g., DEFAULT_QUEUE_ID, DEFAULT_CATEGORY_ID)',
     example: 'DEFAULT_QUEUE_ID',
   })
   key: string;

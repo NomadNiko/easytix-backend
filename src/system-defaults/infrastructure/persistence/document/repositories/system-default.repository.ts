@@ -7,16 +7,23 @@ import { SystemDefault } from '../../../../domain/system-default';
 import { SystemDefaultSchemaClass } from '../entities/system-default.schema';
 import { SystemDefaultMapper } from '../mappers/system-default.mapper';
 import { NullableType } from '../../../../../utils/types/nullable.type';
-import { FilterSystemDefaultDto, SortSystemDefaultDto } from '../../../../dto/query-system-default.dto';
+import {
+  FilterSystemDefaultDto,
+  SortSystemDefaultDto,
+} from '../../../../dto/query-system-default.dto';
 
 @Injectable()
-export class SystemDefaultDocumentRepository implements SystemDefaultRepository {
+export class SystemDefaultDocumentRepository
+  implements SystemDefaultRepository
+{
   constructor(
     @InjectModel(SystemDefaultSchemaClass.name)
     private readonly systemDefaultModel: Model<SystemDefaultSchemaClass>,
   ) {}
 
-  async create(data: Omit<SystemDefault, 'id' | 'createdAt' | 'updatedAt'>): Promise<SystemDefault> {
+  async create(
+    data: Omit<SystemDefault, 'id' | 'createdAt' | 'updatedAt'>,
+  ): Promise<SystemDefault> {
     const persistenceModel = SystemDefaultMapper.toPersistence(data);
     const createdSystemDefault = new this.systemDefaultModel(persistenceModel);
     const systemDefaultObject = await createdSystemDefault.save();
@@ -25,12 +32,18 @@ export class SystemDefaultDocumentRepository implements SystemDefaultRepository 
 
   async findByKey(key: string): Promise<NullableType<SystemDefault>> {
     const systemDefaultObject = await this.systemDefaultModel.findOne({ key });
-    return systemDefaultObject ? SystemDefaultMapper.toDomain(systemDefaultObject) : null;
+    return systemDefaultObject
+      ? SystemDefaultMapper.toDomain(systemDefaultObject)
+      : null;
   }
 
-  async findById(id: SystemDefault['id']): Promise<NullableType<SystemDefault>> {
+  async findById(
+    id: SystemDefault['id'],
+  ): Promise<NullableType<SystemDefault>> {
     const systemDefaultObject = await this.systemDefaultModel.findById(id);
-    return systemDefaultObject ? SystemDefaultMapper.toDomain(systemDefaultObject) : null;
+    return systemDefaultObject
+      ? SystemDefaultMapper.toDomain(systemDefaultObject)
+      : null;
   }
 
   async findAll(
@@ -38,7 +51,7 @@ export class SystemDefaultDocumentRepository implements SystemDefaultRepository 
     sortOptions?: SortSystemDefaultDto[] | null,
   ): Promise<SystemDefault[]> {
     const where: Record<string, any> = {};
-    
+
     if (filterOptions?.key) {
       where.key = filterOptions.key;
     }
@@ -73,7 +86,9 @@ export class SystemDefaultDocumentRepository implements SystemDefaultRepository 
       { new: true },
     );
 
-    return systemDefaultObject ? SystemDefaultMapper.toDomain(systemDefaultObject) : null;
+    return systemDefaultObject
+      ? SystemDefaultMapper.toDomain(systemDefaultObject)
+      : null;
   }
 
   async remove(id: SystemDefault['id']): Promise<void> {

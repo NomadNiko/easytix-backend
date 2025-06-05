@@ -93,6 +93,35 @@ export class UsersController {
   }
 
   @ApiOkResponse({
+    type: [User],
+    description: 'Get multiple users by IDs',
+  })
+  @SerializeOptions({
+    groups: ['admin'],
+  })
+  @Get('batch')
+  @HttpCode(HttpStatus.OK)
+  async findByIds(@Query('ids') ids: string | string[]): Promise<User[]> {
+    // Handle both single ID and array of IDs
+    const userIds = Array.isArray(ids) ? ids : [ids];
+
+    // Filter out empty or invalid IDs
+    const validIds = userIds.filter((id) => id && id.trim());
+
+    if (validIds.length === 0) {
+      return [];
+    }
+
+    // Fetch all users in parallel
+    const users = await Promise.all(
+      validIds.map((id) => this.usersService.findById(id).catch(() => null)),
+    );
+
+    // Filter out null results
+    return users.filter((user): user is User => user !== null);
+  }
+
+  @ApiOkResponse({
     type: User,
   })
   @SerializeOptions({
@@ -180,6 +209,9 @@ export class UsersController {
     @Param('id') id: User['id'],
     @Body() updatePreferencesDto: UpdateNotificationPreferencesDto,
   ): Promise<any> {
-    return this.usersService.updateNotificationPreferences(id, updatePreferencesDto);
+    return this.usersService.updateNotificationPreferences(
+      id,
+      updatePreferencesDto,
+    );
   }
 }

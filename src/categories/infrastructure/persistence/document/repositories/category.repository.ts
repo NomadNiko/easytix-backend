@@ -24,15 +24,17 @@ export class CategoryDocumentRepository implements CategoryRepository {
     const lastCategory = await this.categoryModel
       .findOne({ customId: { $regex: /^tc-\d{4}$/ } })
       .sort({ customId: -1 });
-    
+
     let nextSequence = 1;
     if (lastCategory && lastCategory.customId) {
-      nextSequence = this.idGeneratorService.extractCategorySequence(lastCategory.customId) + 1;
+      nextSequence =
+        this.idGeneratorService.extractCategorySequence(lastCategory.customId) +
+        1;
     }
-    
+
     // Generate custom ID
     const customId = this.idGeneratorService.generateCategoryId(nextSequence);
-    
+
     const persistenceModel = CategoryMapper.toPersistence({
       ...data,
       customId,
@@ -45,6 +47,14 @@ export class CategoryDocumentRepository implements CategoryRepository {
   async findById(id: Category['id']): Promise<NullableType<Category>> {
     const categoryObject = await this.categoryModel.findById(id);
     return categoryObject ? CategoryMapper.toDomain(categoryObject) : null;
+  }
+
+  async findAll(): Promise<Category[]> {
+    const categoryObjects = await this.categoryModel.find({}).sort({ name: 1 });
+
+    return categoryObjects.map((categoryObject) =>
+      CategoryMapper.toDomain(categoryObject),
+    );
   }
 
   async findByQueueId(queueId: string): Promise<Category[]> {

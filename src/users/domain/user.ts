@@ -111,25 +111,25 @@ export interface NotificationPreferences {
   ticketResolved: NotificationPreference;
   ticketReopened: NotificationPreference;
   ticketDeleted: NotificationPreference;
-  
+
   // Comment Events
   newComment: NotificationPreference;
-  
+
   // Document Events
   documentAdded: NotificationPreference;
   documentRemoved: NotificationPreference;
-  
+
   // Change Events
   priorityChanged: NotificationPreference;
   categoryChanged: NotificationPreference;
-  
+
   // Queue Events
   queueAssignment: NotificationPreference;
-  
+
   // Security Events
   passwordChanged: NotificationPreference;
   emailChanged: NotificationPreference;
-  
+
   // System Events
   highPriorityAlert: NotificationPreference;
   systemMaintenance: NotificationPreference;

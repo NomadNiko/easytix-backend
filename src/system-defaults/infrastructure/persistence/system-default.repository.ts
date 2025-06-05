@@ -2,7 +2,10 @@
 import { DeepPartial } from '../../../utils/types/deep-partial.type';
 import { NullableType } from '../../../utils/types/nullable.type';
 import { SystemDefault } from '../../domain/system-default';
-import { FilterSystemDefaultDto, SortSystemDefaultDto } from '../../dto/query-system-default.dto';
+import {
+  FilterSystemDefaultDto,
+  SortSystemDefaultDto,
+} from '../../dto/query-system-default.dto';
 
 export abstract class SystemDefaultRepository {
   abstract create(
@@ -11,7 +14,9 @@ export abstract class SystemDefaultRepository {
 
   abstract findByKey(key: string): Promise<NullableType<SystemDefault>>;
 
-  abstract findById(id: SystemDefault['id']): Promise<NullableType<SystemDefault>>;
+  abstract findById(
+    id: SystemDefault['id'],
+  ): Promise<NullableType<SystemDefault>>;
 
   abstract findAll(
     filterOptions?: FilterSystemDefaultDto | null,

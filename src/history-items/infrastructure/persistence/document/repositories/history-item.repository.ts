@@ -43,6 +43,16 @@ export class HistoryItemDocumentRepository implements HistoryItemRepository {
     );
   }
 
+  async findByTicketIds(ticketIds: string[]): Promise<HistoryItem[]> {
+    const historyItemObjects = await this.historyItemModel
+      .find({ ticketId: { $in: ticketIds } })
+      .sort({ createdAt: -1 });
+
+    return historyItemObjects.map((historyItemObject) =>
+      HistoryItemMapper.toDomain(historyItemObject),
+    );
+  }
+
   async remove(id: HistoryItem['id']): Promise<void> {
     await this.historyItemModel.deleteOne({ _id: id.toString() });
   }

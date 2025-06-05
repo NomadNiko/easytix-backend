@@ -41,6 +41,17 @@ export class CategoriesController {
     return this.categoriesService.create(createCategoryDto);
   }
 
+  @Get()
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({
+    type: [Category],
+  })
+  findAll(): Promise<Category[]> {
+    return this.categoriesService.findAll();
+  }
+
   @Get('queue/:queueId')
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))

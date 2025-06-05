@@ -25,15 +25,16 @@ export class QueueDocumentRepository implements QueueRepository {
     const lastQueue = await this.queueModel
       .findOne({ customId: { $regex: /^tq-\d{4}$/ } })
       .sort({ customId: -1 });
-    
+
     let nextSequence = 1;
     if (lastQueue && lastQueue.customId) {
-      nextSequence = this.idGeneratorService.extractQueueSequence(lastQueue.customId) + 1;
+      nextSequence =
+        this.idGeneratorService.extractQueueSequence(lastQueue.customId) + 1;
     }
-    
+
     // Generate custom ID
     const customId = this.idGeneratorService.generateQueueId(nextSequence);
-    
+
     const persistenceModel = QueueMapper.toPersistence({
       ...data,
       customId,

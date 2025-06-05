@@ -22,7 +22,10 @@ import { SystemDefaultsService } from './system-defaults.service';
 import { CreateSystemDefaultDto } from './dto/create-system-default.dto';
 import { UpdateSystemDefaultDto } from './dto/update-system-default.dto';
 import { SystemDefault } from './domain/system-default';
-import { FilterSystemDefaultDto, SortSystemDefaultDto } from './dto/query-system-default.dto';
+import {
+  FilterSystemDefaultDto,
+  SortSystemDefaultDto,
+} from './dto/query-system-default.dto';
 import { QueuesService } from '../queues/queues.service';
 import { CategoriesService } from '../categories/categories.service';
 
@@ -46,7 +49,9 @@ export class SystemDefaultsController {
   @ApiOkResponse({
     type: SystemDefault,
   })
-  create(@Body() createSystemDefaultDto: CreateSystemDefaultDto): Promise<SystemDefault> {
+  create(
+    @Body() createSystemDefaultDto: CreateSystemDefaultDto,
+  ): Promise<SystemDefault> {
     return this.systemDefaultsService.create(createSystemDefaultDto);
   }
 
@@ -95,7 +100,9 @@ export class SystemDefaultsController {
   @ApiOkResponse({
     type: SystemDefault,
   })
-  async setDefaultQueue(@Param('queueId') queueId: string): Promise<SystemDefault> {
+  async setDefaultQueue(
+    @Param('queueId') queueId: string,
+  ): Promise<SystemDefault> {
     // Validate that the queue exists by customId
     const queue = await this.queuesService.findByCustomId(queueId);
     if (!queue) {
@@ -109,7 +116,9 @@ export class SystemDefaultsController {
   @ApiOkResponse({
     type: SystemDefault,
   })
-  async setDefaultCategory(@Param('categoryId') categoryId: string): Promise<SystemDefault> {
+  async setDefaultCategory(
+    @Param('categoryId') categoryId: string,
+  ): Promise<SystemDefault> {
     // Validate that the category exists by customId
     const category = await this.categoriesService.findByCustomId(categoryId);
     if (!category) {
